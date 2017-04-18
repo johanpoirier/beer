@@ -1,0 +1,25 @@
+{
+  "name": "were-next",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "prebuild": "rm -rf dist/ && mkdir dist",
+    "build": "cp app/index.html dist/ && webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/johanpoirier/were-next.git"
+  },
+  "keywords": [],
+  "author": "Johan Poirier <johan.poirier@gmail.com> (https://twitter.com/johanpoirier)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/johanpoirier/were-next/issues"
+  },
+  "homepage": "https://github.com/johanpoirier/were-next#readme",
+  "devDependencies": {
+    "copy-webpack-plugin": "^4.0.1",
+    "webpack": "^2.4.1"
+  }
+}
