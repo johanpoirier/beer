@@ -1,10 +1,13 @@
+const webpack = require('webpack');
 const path = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
-  entry: './app/next.js',
+  entry: {
+    next: './app/next.js'
+  },
   output: {
-    filename: 'next.js',
+    filename: '[name].js',
     path: path.resolve(__dirname, 'dist')
   },
   plugins: [
@@ -12,6 +15,14 @@ module.exports = {
       {
         from: 'app/sw/service-worker.js',
         to: 'service-worker.js'
+      },
+      {
+        from: 'node_modules/jszip/dist/jszip.min.js',
+        to: 'jszip.js'
+      },
+      {
+        from: 'epubs/',
+        to: 'epubs'
       }
     ])
   ]

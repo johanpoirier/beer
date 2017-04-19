@@ -3,13 +3,23 @@
 <head>
   <meta charset="utf-8">
   <title>were-next</title>
+  <style>
+    iframe {
+      border: none;
+      height: 100vh;
+      width: 100vw;
+    }
+  </style>
 </head>
 <body>
   <header></header>
   <nav></nav>
-  <main></main>
+  <main>
+    <iframe id="next-epub-frame" src="about:blank" sandbox="allow-same-origin allow-scripts"></iframe>
+  </main>
   <footer></footer>
 
+  <script defer src="jszip.js"></script>
   <script defer src="next.js"></script>
 </body>
 </html>

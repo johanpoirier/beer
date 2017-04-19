@@ -1,6 +1,8 @@
+self.importScripts('jszip.js');
+
 const config = {
   version: 'CURRENT_VERSION',
-  epubPattern: /\w\.epub\/(.*)$/
+  epubPattern: /____\/(.*)$/
 };
 
 const mimeTypeMap = {
@@ -22,64 +24,62 @@ const mimeTypeMap = {
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', () => self.clients.claim());
+self.addEventListener('message', event => self.epub = event.data);
 
 self.addEventListener('fetch', event => {
 
   function shouldHandleFetch(event, opts) {
-    var request = event.request;
-    var url = new URL(request.url);
-    var criteria = {
+    const request = event.request;
+    const url = new URL(request.url);
+    const criteria = {
       matchesPathPattern: opts.epubPattern.test(url.pathname),
       isGETRequest: request.method === 'GET',
       isFromMyOrigin: url.origin === self.location.origin
     };
-    var failingCriteria = Object.keys(criteria).filter(function (criteriaKey) {
+    const failingCriteria = Object.keys(criteria).filter(function (criteriaKey) {
       return !criteria[criteriaKey];
     });
     return !failingCriteria.length;
   }
 
   function onFetch(event) {
-    var request = event.request;
-    var epubFileMatch = request.url.match(/(.*\.epub)\/(.*)$/);
-    if (epubFileMatch && epubFileMatch.length > 2) {
-      var epubUrl = epubFileMatch[1];
-      var filePath = epubFileMatch[2];
-      event.respondWith(getFileInEpub(epubUrl, filePath));
+    const request = event.request;
+    const fileMatch = request.url.match(config.epubPattern);
+    if (fileMatch && fileMatch.length > 0) {
+      const filePath = fileMatch[1];
+      event.respondWith(getFileInEpub(filePath));
     }
   }
 
   if (shouldHandleFetch(event, config)) {
+    console.info('\u2663 Fetching in epub', event.request.url);
     onFetch(event, config);
   }
 });
 
 function getZipResponse(mimeType, arrayBuffer) {
-  var init = {
+  const init = {
     status: 200,
     statusText: 'OK',
     headers: {
       'Accept-Ranges': 'bytes',
       'Cache-Control': 'public',
-      'Content-Type': 'audio/mpeg',
+      'Content-Type': mimeType,
       'Content-Length': arrayBuffer.byteLength
     }
   };
   return new Response(new Blob([arrayBuffer], { type: mimeType }), init);
 }
 
-function getEpubBlob(epubUrl) {
-  if (self.epub instanceof Blob) {
-    return Promise.resolve(self.epub);
-  }
-  return fetch(epubUrl).then(function (response) { return response.blob(); });
+function getEpubBlob() {
+  return Promise.resolve(self.epub);
 }
 
-function getFileInEpub(epubUrl, filePath) {
-  return getEpubBlob(epubUrl)
+function getFileInEpub(filePath) {
+  return getEpubBlob()
     .then(function (blob) { return JSZip.loadAsync(blob); })
     .then(function (zip) {
-      var zipFile = zip.file(filePath);
+      const zipFile = zip.file(filePath);
       if (!zipFile) {
         throw new Exception(`${filePath} not found in zip file`);
       }
