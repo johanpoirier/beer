@@ -28,7 +28,11 @@ export default class Book {
   }
 
   get format() {
-    return this._metadata['meta'].find(data => data['_property'] === 'rendition:layout')['__text'];
+    const metaLayout = this._metadata['meta'].find(data => data['_property'] === 'rendition:layout');
+    if (metaLayout) {
+      return metaLayout['__text'];
+    }
+    return 'reflowable';
   }
 
   get spineItems() {

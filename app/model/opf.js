@@ -11,6 +11,9 @@ export default class Opf {
     const opf = new Opf();
 
     opf.metadata = x2js.xml2json(xmlDoc.querySelector('metadata'));
+    if (!(opf.metadata.meta instanceof Array)) {
+      opf.metadata.meta = [opf.metadata.meta];
+    }
 
     const spineItemsRefs = x2js.xml2json(xmlDoc.querySelector('spine')).itemref.map(item => item['_idref']);
     opf.spineItems = x2js.xml2json(xmlDoc.querySelector('manifest')).item.filter(item => spineItemsRefs.indexOf(item['_id']) >= 0).map(SpineItem.fromXml);
