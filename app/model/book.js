@@ -27,6 +27,10 @@ export default class Book {
     return this._metadata;
   }
 
+  get format() {
+    return this._metadata['meta'].find(data => data['_property'] === 'rendition:layout')['__text'];
+  }
+
   get spineItems() {
     return this._spineItems;
   }

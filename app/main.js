@@ -1,6 +1,6 @@
 import Next from './next';
 
-const frame = document.querySelector('#next-epub-frame');
+const container = document.querySelector('main');
 
 // List of epubs:
 // - Ali-Baba-ipad-V4.0.epub
@@ -8,17 +8,21 @@ const frame = document.querySelector('#next-epub-frame');
 // - asterix.epub
 // - timote.epub
 
-Next.withBook('/epubs/timote.epub')
+Next.withBook('/epubs/asterix.epub')
   .then(reader => {
-    reader.displayBook(frame);
+    const display = reader.displayBook(container);
 
-    frame.onload = () => {
-      listenToKeyboard(document, reader);
-      listenToKeyboard(reader.displayElement, reader);
-    }
+    console.info(`book format: ${reader.book.format}`);
+
+    // listen to events in main page frame
+    listenToKeyboard(document, display);
+
+    // listen to events in reader frame
+    display.on('load', displayDocument => listenToKeyboard(displayDocument, display));
   });
 
-function listenToKeyboard(element, reader) {
+
+function listenToKeyboard(element, display) {
   element.addEventListener('keydown', event => {
     if (event.defaultPrevented) {
       return;
@@ -26,10 +30,16 @@ function listenToKeyboard(element, reader) {
 
     switch (event.key) {
       case "ArrowLeft":
-        reader.displayPreviousSpine();
+        display.previousSpine();
         break;
       case "ArrowRight":
-        reader.displayNextSpine();
+        display.nextSpine();
+        break;
+      case "ArrowUp":
+        display.zoomIn();
+        break;
+      case "ArrowDown":
+        display.zoomOut();
         break;
     }
 

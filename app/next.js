@@ -1,6 +1,7 @@
 import serviceWorkerInstall from './sw/install';
 import Opf from './model/opf';
 import Book from './model/book';
+import Scroll from './display/scroll';
 
 export default class Next {
 
@@ -27,8 +28,8 @@ export default class Next {
       });
   }
 
-  get displayElement() {
-    return this._frameElement.contentWindow.document;
+  get book() {
+    return this._book;
   }
 
   get displayOptions() {
@@ -38,51 +39,23 @@ export default class Next {
   /**
    * Display loaded book on a HTML element
    *
-   * @param frameElement a HTML element
+   * @param htmlElement a HTML element
    * @param displayOptions
    */
-  displayBook(frameElement, displayOptions = false) {
-    this._frameElement = frameElement;
-    if (!frameElement) {
-      throw new Error('frame element not found');
+  displayBook(htmlElement, displayOptions = false) {
+    if (!htmlElement) {
+      throw new Error('container HTML element not found');
     }
 
     this._displayOptions = displayOptions || getDefaultDisplayOptions();
 
-    this._currentSpineItemIndex = 0;
-    this.displaySpine(this._currentSpineItemIndex);
-  }
-
-  /**
-   *
-   * @param spineItemIndex
-   */
-  displaySpine(spineItemIndex) {
-    this._currentSpineItemIndex = spineItemIndex;
-    const spineItem = this._book.getSpineItem(this._currentSpineItemIndex);
-    this._frameElement.setAttribute('src', `____/${spineItem.href}`);
-  }
-
-  /**
-   *
-   */
-  displayNextSpine() {
-    if (this._currentSpineItemIndex >= this._book.spineItemsCount - 1) {
-      return;
+    if (this._displayOptions.mode === 'scroll') {
+      const scrollDisplay = new Scroll(htmlElement);
+      scrollDisplay.display(this._book);
+      return scrollDisplay;
     }
-    this._currentSpineItemIndex += 1;
-    this.displaySpine(this._currentSpineItemIndex);
-  }
 
-  /**
-   *
-   */
-  displayPreviousSpine() {
-    if (this._currentSpineItemIndex <= 0) {
-      return;
-    }
-    this._currentSpineItemIndex -= 1;
-    this.displaySpine(this._currentSpineItemIndex);
+    console.warn('Display mode unknown or not provided!');
   }
 }
 

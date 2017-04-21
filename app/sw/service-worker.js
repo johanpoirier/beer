@@ -52,7 +52,7 @@ self.addEventListener('fetch', event => {
   }
 
   if (shouldHandleFetch(event, config)) {
-    console.info('\u2663 Fetching in epub', event.request.url);
+    //console.info('\u2663 Fetching in epub', event.request.url);
     onFetch(event, config);
   }
 });
