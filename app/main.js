@@ -1,6 +1,6 @@
 import Next from './next';
 
-const reader = new Next();
-reader.openBook('/epubs/Ali-Baba-ipad-V4.0.epub');
+const frame = document.querySelector('#next-epub-frame');
 
-//window.setInterval(() => reader.openNextSpine(), 5000);
+Next.withBook('/epubs/l-odyssee.epub')
+  .then(reader => reader.displayBook(frame));
