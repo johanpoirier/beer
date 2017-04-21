@@ -2,8 +2,25 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+  <meta name="author" content="JoPs">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="expires" content="0">
   <title>were-next</title>
   <style>
+    *, *:before, *:after {
+      box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      -webkit-box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      padding: 0;
+    }
+
     iframe {
       border: none;
       height: 100vh;
@@ -12,12 +29,9 @@
   </style>
 </head>
 <body>
-  <header></header>
-  <nav></nav>
   <main>
     <iframe id="next-epub-frame" src="about:blank" sandbox="allow-same-origin allow-scripts"></iframe>
   </main>
-  <footer></footer>
 
   <script defer src="jszip.js"></script>
   <script defer src="main.js"></script>
