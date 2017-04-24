@@ -14,7 +14,7 @@
     "watch:html": "onchange 'app/*.html' -- npm run html",
     "watch:sw": "onchange 'app/sw/service-worker.js' -- npm run sw",
     "predev": "npm run clean",
-    "dev": "npm build && parallelshell 'webpack --watch' 'npm run watch:html' 'npm run watch:sw'"
+    "dev": "npm run build && parallelshell 'webpack --watch' 'npm run watch:html' 'npm run watch:sw'"
   },
   "repository": {
     "type": "git",

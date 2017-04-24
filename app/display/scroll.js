@@ -1,101 +1,133 @@
 import Base from './base';
 import EventedMixin from '../mixin/evented';
 
+const ZOOM_SCALE_MULTIPLIER = 1.5;
+
 export default class Scroll extends EventedMixin(Base) {
 
   constructor(element) {
     super(...arguments);
 
     this._element = element;
-    this._element.innerHTML = '<iframe id="next-epub-frame" src="about:blank" sandbox="allow-same-origin allow-scripts"></iframe>';
-    this._frame = this._element.querySelector('iframe');
+    this._element.addEventListener('scroll', onScroll.bind(this));
 
-    this._frame.onload = () => {
-      this.trigger('load', this._frame.contentWindow.document);
-      fitContent.call(this);
-    };
+    this._frames = [];
   }
 
   display(book) {
     this._book = book;
-    this.displaySpine();
+    this._useScale = book.format === 'pre-paginated';
+
+    this._currentSpineItemIndex = -1;
+    this.displayNextSpine().then(this.displayNextSpine.bind(this));
   }
 
   /**
    *
    * @param spineItemIndex
    */
-  displaySpine(spineItemIndex = 0) {
-    this._currentSpineItemIndex = spineItemIndex;
-    const spineItem = this._book.getSpineItem(this._currentSpineItemIndex);
-    this._frame.style['opacity'] = '0';
-    this._frame.setAttribute('src', `____/${spineItem.href}`);
-  }
-
-  /**
-   *
-   */
-  nextSpine() {
-    if (this._currentSpineItemIndex >= this._book.spineItemsCount - 1) {
-      return;
-    }
+  displayNextSpine() {
     this._currentSpineItemIndex += 1;
-    this.displaySpine(this._currentSpineItemIndex);
+    const spineItem = this._book.getSpineItem(this._currentSpineItemIndex);
+
+    if (!spineItem) {
+      return Promise.resolve();
+    }
+
+    const frameId = `next-epub-frame-${this._currentSpineItemIndex}`;
+    const frame = document.createElement('iframe');
+    frame.id = frameId;
+    frame.setAttribute('sandbox', 'allow-same-origin allow-scripts');
+    this._element.appendChild(frame);
+
+    return this.loadFrame(frame, spineItem.href).then(frame => {
+      frame.style['opacity'] = '1';
+      frame.style['height'] = `${frame.contentWindow.document.body.clientHeight + 100}px`;
+      frame.contentWindow.document.body.style['overflow'] = 'hidden';
+
+      this._frames.push(frame);
+
+      if (this._useScale) {
+        fitContent.call(this, frame);
+      }
+    });
   }
 
   /**
-   *
+   * @param href The relative URL to a .html file inside the epub
    */
-  previousSpine() {
-    if (this._currentSpineItemIndex <= 0) {
-      return;
-    }
-    this._currentSpineItemIndex -= 1;
-    this.displaySpine(this._currentSpineItemIndex);
+  loadFrame(frame, href) {
+    return new Promise(resolve => {
+      frame.style['opacity'] = '0';
+      frame.setAttribute('src', `____/${href}`);
+
+      const self = this;
+
+      function frameOnLoad() {
+        self.trigger('load', frame.contentWindow.document);
+        frame.removeEventListener('load', frameOnLoad, true);
+        resolve(frame);
+      }
+
+      frame.addEventListener('load', frameOnLoad, true);
+    });
   }
 
   /**
    *
    */
   zoomIn() {
-    this._displayRatio *= 1.5;
-    updateRatio.call(this);
+    this._displayRatio *= ZOOM_SCALE_MULTIPLIER;
+    redrawFrames.call(this);
   }
 
   /**
    *
    */
   zoomOut() {
-    this._displayRatio *= 0.75;
-    updateRatio.call(this);
+    this._displayRatio /= ZOOM_SCALE_MULTIPLIER;
+    redrawFrames.call(this);
   }
 }
 
-function fitContent() {
-  const document = this._frame.contentWindow.document;
+function fitContent(frame) {
+  if (!this._useScale) {
+    return;
+  }
+
+  if (!frame) {
+    frame = this._frames[this._currentSpineItemIndex];
+  }
+  const document = frame.contentWindow.document;
   const body = document.querySelector('body');
 
-  fitContentToHeight.call(this, body);
-  this._frame.style['opacity'] = '1';
+  if (!this._displayRatio) {
+    this._displayRatio = frame.clientWidth / body.clientWidth;
+  }
+  redrawFrames.call(this);
 }
 
-function fitContentToWidth(body) {
-  this._displayRatio = this._frame.clientWidth / body.clientWidth;
-  updateRatio.call(this);
+function redrawFrames() {
+  this._frames.forEach(frame => {
+    frame.style['height'] = `${Math.round(this._displayRatio * frame.contentDocument.body.clientHeight)}px`;
+
+    let leftMargin = Math.round((frame.clientWidth - this._displayRatio * frame.contentDocument.body.clientWidth) / 2);
+    if (leftMargin < 0) {
+      leftMargin = 0;
+    }
+
+    const document = frame.contentWindow.document;
+    const html = document.querySelector('html');
+
+    html.style['overflow-x'] = 'hidden';
+    html.style['transform-origin'] = '0 0 0';
+    html.style['transform'] = `scale(${this._displayRatio})`
+    frame.style['margin-left'] = `${leftMargin}px`;
+  });
 }
 
-function fitContentToHeight(body) {
-  this._displayRatio = this._frame.clientHeight / body.clientHeight;
-  updateRatio.call(this);
-
-  this._frame.style['padding-left'] = `${Math.round((this._frame.clientWidth - (body.clientWidth * this._displayRatio)) / 2)}px`;
-}
-
-function updateRatio() {
-  const document = this._frame.contentWindow.document;
-  const html = document.querySelector('html');
-
-  html.style['overflow-x'] = 'hidden';
-  html.style['transform'] = `scale(${this._displayRatio})`;
-  html.style['transform-origin'] = '0 0 0';
+function onScroll() {
+  if (this._element.scrollTop > this._element.scrollHeight - 2 * this._element.clientHeight) {
+    this.displayNextSpine();
+  }
 }
