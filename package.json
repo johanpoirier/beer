@@ -4,8 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "prebuild": "rm -rf dist/ && mkdir dist",
-    "build": "cp app/index.html dist/ && webpack"
+    "start": "npm run dev",
+    "clean": "rm -rf dist/ && mkdir dist",
+    "html": "cp app/index.html dist/",
+    "js": "webpack",
+    "sw": "cp app/sw/service-worker.js dist/",
+    "build": "npm run html && npm run js && npm run sw",
+    "watch": "watch -d -u 'npm run build' app/*",
+    "watch:html": "onchange 'app/*.html' -- npm run html",
+    "watch:sw": "onchange 'app/sw/service-worker.js' -- npm run sw",
+    "predev": "npm run clean",
+    "dev": "npm build && parallelshell 'webpack --watch' 'npm run watch:html' 'npm run watch:sw'"
   },
   "repository": {
     "type": "git",
@@ -20,6 +29,8 @@
   "homepage": "https://github.com/johanpoirier/were-next#readme",
   "devDependencies": {
     "copy-webpack-plugin": "^4.0.1",
+    "onchange": "^3.2.1",
+    "parallelshell": "^2.0.0",
     "webpack": "^2.4.1"
   },
   "dependencies": {

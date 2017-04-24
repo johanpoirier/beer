@@ -13,10 +13,6 @@ module.exports = {
   plugins: [
     new CopyWebpackPlugin([
       {
-        from: 'app/sw/service-worker.js',
-        to: 'service-worker.js'
-      },
-      {
         from: 'node_modules/jszip/dist/jszip.min.js',
         to: 'jszip.js'
       },
