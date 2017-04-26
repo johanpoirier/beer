@@ -2,6 +2,8 @@ import serviceWorkerInstall from './sw/install';
 import Opf from './model/opf';
 import Book from './model/book';
 import Scroll from './display/scroll';
+import Page from './display/page';
+import Fixed from './display/fixed';
 
 export default class Next {
 
@@ -49,13 +51,17 @@ export default class Next {
 
     this._displayOptions = displayOptions || getDefaultDisplayOptions();
 
+    let readerDisplay;
     if (this._displayOptions.mode === 'scroll') {
-      const scrollDisplay = new Scroll(htmlElement);
-      scrollDisplay.display(this._book);
-      return scrollDisplay;
+      readerDisplay = new Scroll(htmlElement);
+    } else if (this._displayOptions.mode === 'fixed') {
+      readerDisplay = new Fixed(htmlElement);
+    } else {
+      readerDisplay = new Page(htmlElement);
     }
+    readerDisplay.display(this._book);
 
-    console.warn('Display mode unknown or not provided!');
+    return readerDisplay;
   }
 }
 
@@ -109,6 +115,6 @@ function sendEpubToSw(epub) {
 
 function getDefaultDisplayOptions() {
   return {
-    mode: 'scroll'
+    mode: 'page'
   };
 }

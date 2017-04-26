@@ -8,18 +8,33 @@ export default class Scroll extends EventedMixin(Base) {
   constructor(element) {
     super(...arguments);
 
-    this._element = element;
+    this._element.classList.add('scroll');
     this._element.addEventListener('scroll', onScroll.bind(this));
 
     this._frames = [];
   }
 
   display(book) {
-    this._book = book;
-    this._useScale = book.format === 'pre-paginated';
+    super.display(book);
 
+    this._useScale = book.format === 'pre-paginated';
     this._currentSpineItemIndex = -1;
+
     this.displayNextSpine().then(this.displayNextSpine.bind(this));
+  }
+
+  /**
+   *
+   */
+  previous() {
+    this._element.scrollBy(0, Math.round(-1 * this._element.clientHeight * 0.95));
+  }
+
+  /**
+   *
+   */
+  next() {
+    this._element.scrollBy(0, Math.round(this._element.clientHeight * 0.95));
   }
 
   /**
@@ -40,7 +55,7 @@ export default class Scroll extends EventedMixin(Base) {
     frame.setAttribute('sandbox', 'allow-same-origin allow-scripts');
     this._element.appendChild(frame);
 
-    return this.loadFrame(frame, spineItem.href).then(frame => {
+    return loadFrame.call(this, frame, spineItem.href).then(frame => {
       frame.style['opacity'] = '1';
       frame.style['height'] = `${frame.contentWindow.document.body.clientHeight + 100}px`;
       frame.contentWindow.document.body.style['overflow'] = 'hidden';
@@ -50,26 +65,6 @@ export default class Scroll extends EventedMixin(Base) {
       if (this._useScale) {
         fitContent.call(this, frame);
       }
-    });
-  }
-
-  /**
-   * @param href The relative URL to a .html file inside the epub
-   */
-  loadFrame(frame, href) {
-    return new Promise(resolve => {
-      frame.style['opacity'] = '0';
-      frame.setAttribute('src', `____/${href}`);
-
-      const self = this;
-
-      function frameOnLoad() {
-        self.trigger('load', frame.contentWindow.document);
-        frame.removeEventListener('load', frameOnLoad, true);
-        resolve(frame);
-      }
-
-      frame.addEventListener('load', frameOnLoad, true);
     });
   }
 
@@ -88,6 +83,26 @@ export default class Scroll extends EventedMixin(Base) {
     this._displayRatio /= ZOOM_SCALE_MULTIPLIER;
     redrawFrames.call(this);
   }
+}
+
+/**
+ * @param href The relative URL to a .html file inside the epub
+ */
+function loadFrame(frame, href) {
+  return new Promise(resolve => {
+    frame.style['opacity'] = '0';
+    frame.setAttribute('src', `____/${href}`);
+
+    const self = this;
+
+    function frameOnLoad() {
+      self.trigger('load', frame.contentWindow.document);
+      frame.removeEventListener('load', frameOnLoad, true);
+      resolve(frame);
+    }
+
+    frame.addEventListener('load', frameOnLoad, true);
+  });
 }
 
 function fitContent(frame) {
@@ -121,7 +136,7 @@ function redrawFrames() {
 
     html.style['overflow-x'] = 'hidden';
     html.style['transform-origin'] = '0 0 0';
-    html.style['transform'] = `scale(${this._displayRatio})`
+    html.style['transform'] = `scale(${this._displayRatio})`;
     frame.style['margin-left'] = `${leftMargin}px`;
   });
 }

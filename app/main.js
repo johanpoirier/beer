@@ -10,7 +10,7 @@ const container = document.querySelector('main');
 
 Next.withBook('/epubs/asterix.epub')
   .then(reader => {
-    const display = reader.displayBook(container);
+    const display = reader.displayBook(container, { mode: 'fixed' });
 
     console.info(`book format: ${reader.book.format}`);
 
@@ -29,16 +29,16 @@ function listenToKeyboard(element, display) {
     }
 
     switch (event.key) {
-      case "ArrowLeft":
-        display.previousSpine();
+      case 'ArrowLeft':
+        display.previous();
         break;
-      case "ArrowRight":
-        display.nextSpine();
+      case 'ArrowRight':
+        display.next();
         break;
-      case "ArrowUp":
+      case 'ArrowUp':
         display.zoomIn();
         break;
-      case "ArrowDown":
+      case 'ArrowDown':
         display.zoomOut();
         break;
     }

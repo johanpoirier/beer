@@ -27,9 +27,21 @@
     main {
       background-color: white;
       height: 100vh;
-      overflow-x: hidden;
-      overflow-y: scroll;
+      overflow: hidden;
       width: 90vw;
+    }
+
+    main.scroll {
+      overflow-y: scroll;
+      scroll-behavior: smooth;
+    }
+    
+    main.page {
+      padding: 30px;
+    }
+
+    main.fixed {
+      display: flex;
     }
 
     iframe {
