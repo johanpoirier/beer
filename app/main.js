@@ -1,4 +1,4 @@
-import Next from './next';
+import Beer from './beer';
 
 const container = document.querySelector('main');
 
@@ -8,11 +8,9 @@ const container = document.querySelector('main');
 // - asterix.epub
 // - timote.epub
 
-Next.withBook('/epubs/l-odyssee.epub')
+Beer.withBook('/epubs/asterix.epub')
   .then(reader => {
-    const display = reader.displayBook(container, { mode: 'page' });
-
-    console.info(`book format: ${reader.book.format}`);
+    const display = reader.displayBook(container);
 
     // listen to events in main page frame
     listenToKeyboard(document, display);
@@ -42,7 +40,5 @@ function listenToKeyboard(element, display) {
         display.zoomOut();
         break;
     }
-
-    event.preventDefault();
   }, true);
 }

@@ -1,5 +1,7 @@
-export default class Book {
+export const FORMAT_REFLOWABLE = 'reflowable';
+export const FORMAT_FIXED_LAYOUT = 'pre-paginated';
 
+export default class Book {
   /**
    * @param data Blob object of the epub file
    * @param metadata The metadata extracted from opf file
@@ -32,7 +34,15 @@ export default class Book {
     if (metaLayout) {
       return metaLayout['__text'];
     }
-    return 'reflowable';
+    return FORMAT_REFLOWABLE;
+  }
+
+  get isReflowable() {
+    return this.format === FORMAT_REFLOWABLE;
+  }
+
+  get isFixedLayout() {
+    return this.format === FORMAT_FIXED_LAYOUT;
   }
 
   get spineItems() {

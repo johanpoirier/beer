@@ -2,7 +2,8 @@ self.importScripts('jszip.js');
 
 const config = {
   version: 'CURRENT_VERSION',
-  epubPattern: /____\/(.*)$/
+  epubPattern: /____\/(.*)$/,
+  cachePattern: /\.(?:css|js|jpg|png|ttf|woff|eot|otf)$/
 };
 
 const mimeTypeMap = {
@@ -22,7 +23,7 @@ const mimeTypeMap = {
   xhtml: 'application/xhtml+xml'
 };
 
-self.addEventListener('activate', () => self.clients.claim());
+self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
 
 self.addEventListener('install', event => {
   function onInstall(event, opts) {
@@ -62,7 +63,7 @@ self.addEventListener('fetch', event => {
       event.respondWith(
         fetchFromCache(request)
           .catch(() => getFileInEpub(request.url, filePath))
-          .then(response => addToCache(cacheName('epub', opts), request, response))
+          .then(response => addToCache(cacheName('epub', opts), opts, request, response))
       );
     }
   }
@@ -119,8 +120,8 @@ function cacheName(key, opts) {
   return `${opts.version}-${key}`;
 }
 
-function addToCache(cacheKey, request, response) {
-  if (response.ok && request.url.match(/\.(?:css|js|jpg|png)$/)) {
+function addToCache(cacheKey, opts, request, response) {
+  if (response.ok && request.url.match(opts.cachePattern)) {
     const copy = response.clone();
     caches.open(cacheKey).then(cache => {
       cache.put(request, copy);

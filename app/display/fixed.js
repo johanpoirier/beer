@@ -9,6 +9,9 @@ export default class Fixed extends EventedMixin(Base) {
     super(...arguments);
 
     this._element.classList.add('fixed');
+    window.addEventListener('resize', debounce(() => {
+      fitContent.call(this, this._frames[0]);
+    }, 100), false);
 
     this._frames = [];
     for (let i = 0; i < 2; i++) {
@@ -109,11 +112,26 @@ function fitContent(frame) {
 
 function redrawFrames() {
   this._frames.forEach(frame => {
-    frame.style['height'] = `${Math.round(this._displayRatio * frame.contentDocument.body.clientHeight)}px`;
+    frame.style['width'] = `${Math.round(this._displayRatio * frame.contentDocument.body.clientWidth)}px`;
 
     const html = frame.contentWindow.document.querySelector('html');
     html.style['overflow-y'] = 'hidden';
     html.style['transform-origin'] = '0 0 0';
     html.style['transform'] = `scale(${this._displayRatio})`;
   });
+}
+
+function debounce(func, wait, immediate) {
+  var timeout;
+  return function () {
+    var context = this, args = arguments;
+    var later = function () {
+      timeout = null;
+      if (!immediate) func.apply(context, args);
+    };
+    var callNow = immediate && !timeout;
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+    if (callNow) func.apply(context, args);
+  };
 }

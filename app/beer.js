@@ -5,7 +5,7 @@ import Scroll from './display/scroll';
 import Page from './display/page';
 import Fixed from './display/fixed';
 
-export default class Next {
+export default class Beer {
 
   /**
    * @param book A Book
@@ -26,7 +26,7 @@ export default class Next {
         // service worker is ready, we send it the epub Blob
         sendEpubToSw(book.data);
 
-        return new Next(book);
+        return new Beer(book);
       });
   }
 
@@ -50,6 +50,10 @@ export default class Next {
     }
 
     this._displayOptions = displayOptions || getDefaultDisplayOptions();
+
+    if (this._book.isFixedLayout) {
+      this._displayOptions.mode = 'fixed';
+    }
 
     let readerDisplay;
     if (this._displayOptions.mode === 'scroll') {
