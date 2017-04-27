@@ -22,9 +22,20 @@ const mimeTypeMap = {
   xhtml: 'application/xhtml+xml'
 };
 
-self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', () => self.clients.claim());
-self.addEventListener('message', event => self.epub = event.data);
+
+self.addEventListener('install', event => {
+  function onInstall(event, opts) {
+    return caches.delete(cacheName('epub', opts));
+  }
+
+  event.waitUntil(onInstall(event, config).then(() => self.skipWaiting()));
+});
+
+self.addEventListener('message', event => {
+  self.epub = event.data;
+  caches.delete(cacheName('epub', config));
+});
 
 self.addEventListener('fetch', event => {
 
@@ -42,22 +53,26 @@ self.addEventListener('fetch', event => {
     return !failingCriteria.length;
   }
 
-  function onFetch(event) {
+  function onFetch(event, opts) {
     const request = event.request;
-    const fileMatch = request.url.match(config.epubPattern);
+    const fileMatch = request.url.match(opts.epubPattern);
+
     if (fileMatch && fileMatch.length > 0) {
       const filePath = fileMatch[1];
-      event.respondWith(getFileInEpub(filePath));
+      event.respondWith(
+        fetchFromCache(request)
+          .catch(() => getFileInEpub(request.url, filePath))
+          .then(response => addToCache(cacheName('epub', opts), request, response))
+      );
     }
   }
 
   if (shouldHandleFetch(event, config)) {
-    //console.info('\u2663 Fetching in epub', event.request.url);
     onFetch(event, config);
   }
 });
 
-function getZipResponse(mimeType, arrayBuffer) {
+function getZipResponse(url, mimeType, arrayBuffer) {
   const init = {
     status: 200,
     statusText: 'OK',
@@ -66,7 +81,9 @@ function getZipResponse(mimeType, arrayBuffer) {
       'Cache-Control': 'public',
       'Content-Type': mimeType,
       'Content-Length': arrayBuffer.byteLength
-    }
+    },
+    type: 'basic',
+    url: url
   };
   return new Response(new Blob([arrayBuffer], { type: mimeType }), init);
 }
@@ -75,7 +92,8 @@ function getEpubBlob() {
   return Promise.resolve(self.epub);
 }
 
-function getFileInEpub(filePath) {
+function getFileInEpub(url, filePath) {
+  console.debug(`fetching ${filePath} from the epub file`);
   return getEpubBlob()
     .then(function (blob) { return JSZip.loadAsync(blob); })
     .then(function (zip) {
@@ -85,7 +103,7 @@ function getFileInEpub(filePath) {
       }
       return zipFile.async('arraybuffer');
     })
-    .then(function(data) { return getZipResponse(getMimeTypeFromFileExtension(filePath), data); })
+    .then(function(data) { return getZipResponse(url, getMimeTypeFromFileExtension(filePath), data); })
     .catch(function(error) { return new Response(error, { status: 404 }); });
 }
 
@@ -95,4 +113,32 @@ function getMimeTypeFromFileExtension(filePath) {
     return mimeTypeMap[fileExtMatch[1]] || mimeTypeMap.default;
   }
   return mimeTypeMap.default;
+}
+
+function cacheName(key, opts) {
+  return `${opts.version}-${key}`;
+}
+
+function addToCache(cacheKey, request, response) {
+  if (response.ok && request.url.match(/\.(?:css|js|jpg|png)$/)) {
+    const copy = response.clone();
+    caches.open(cacheKey).then(cache => {
+      cache.put(request, copy);
+    });
+  }
+  return response;
+}
+
+function fetchFromCache(request) {
+  return caches.match(request).then(response => {
+    if (response) {
+      console.debug(`fetching ${request.url} from cache`);
+      return response;
+    }
+    return Promise.reject();
+  });
+}
+
+function offlineResponse() {
+  return new Response();
 }
