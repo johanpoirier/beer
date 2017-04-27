@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t next .
+docker build -t beer .

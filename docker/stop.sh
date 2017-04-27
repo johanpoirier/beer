@@ -1,4 +1,4 @@
 #!/bin/bash
 
-docker stop next
-docker rm next
+docker stop beer
+docker rm beer
