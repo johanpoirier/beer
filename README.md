@@ -1,6 +1,6 @@
-# Next Reader
+# BEst Epub Reader
 
-Next Reader est un prototype de liseuse d'ePub.
+BEER est un prototype de liseuse d'ePub.
 
 Ce lecteur est basé sur des technologies javascript récentes :
 * les services workers : pour aller chercher les ressources dans l'epub directement

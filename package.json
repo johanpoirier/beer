@@ -1,18 +1,18 @@
 {
-  "name": "were-next",
+  "name": "beer",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "BEst Epub Reader",
+  "main": "app/main.js",
   "scripts": {
     "start": "npm run dev",
     "clean": "rm -rf dist/ && mkdir dist",
     "html": "cp app/index.html dist/",
     "js": "webpack",
-    "sw": "cp app/sw/service-worker.js dist/",
+    "sw": "cp app/sw/beer-service-worker.js dist/",
     "build": "npm run html && npm run js && npm run sw",
     "watch": "watch -d -u 'npm run build' app/*",
     "watch:html": "onchange 'app/*.html' -- npm run html",
-    "watch:sw": "onchange 'app/sw/service-worker.js' -- npm run sw",
+    "watch:sw": "onchange 'app/sw/beer-service-worker.js' -- npm run sw",
     "predev": "npm run clean",
     "dev": "npm run build && parallelshell 'webpack --watch' 'npm run watch:html' 'npm run watch:sw'"
   },
@@ -22,7 +22,7 @@
   },
   "keywords": [],
   "author": "Johan Poirier <johan.poirier@gmail.com> (https://twitter.com/johanpoirier)",
-  "license": "ISC",
+  "license": "Apache License 2.0",
   "bugs": {
     "url": "https://github.com/johanpoirier/were-next/issues"
   },
