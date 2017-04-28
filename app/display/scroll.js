@@ -39,50 +39,56 @@ export default class Scroll extends EventedMixin(Base) {
 
   /**
    *
-   * @param spineItemIndex
    */
-  displayNextSpine() {
-    this._currentSpineItemIndex += 1;
-    const spineItem = this._book.getSpineItem(this._currentSpineItemIndex);
+  redraw() {
+    this._frames.forEach(frame => {
+      frame.style['height'] = `${Math.round(this._displayRatio * frame.contentDocument.body.clientHeight)}px`;
 
-    if (!spineItem) {
-      return Promise.resolve();
-    }
-
-    const frameId = `next-epub-frame-${this._currentSpineItemIndex}`;
-    const frame = document.createElement('iframe');
-    frame.id = frameId;
-    frame.setAttribute('sandbox', 'allow-same-origin allow-scripts');
-    this._element.appendChild(frame);
-
-    return loadFrame.call(this, frame, spineItem.href).then(frame => {
-      frame.style['opacity'] = '1';
-      frame.style['height'] = `${frame.contentWindow.document.body.clientHeight + 100}px`;
-      frame.contentWindow.document.body.style['overflow'] = 'hidden';
-
-      this._frames.push(frame);
-
-      if (this._useScale) {
-        fitContent.call(this, frame);
+      let leftMargin = Math.round((frame.clientWidth - this._displayRatio * frame.contentDocument.body.clientWidth) / 2);
+      if (leftMargin < 0) {
+        leftMargin = 0;
       }
+
+      const document = frame.contentWindow.document;
+      const html = document.querySelector('html');
+
+      html.style['overflow-x'] = 'hidden';
+      html.style['transform-origin'] = '0 0 0';
+      html.style['transform'] = `scale(${this._displayRatio})`;
+      frame.style['margin-left'] = `${leftMargin}px`;
     });
   }
+}
 
-  /**
-   *
-   */
-  zoomIn() {
-    this._displayRatio *= ZOOM_SCALE_MULTIPLIER;
-    redrawFrames.call(this);
+/**
+ *
+ * @param spineItemIndex
+ */
+function displayNextSpine() {
+  this._currentSpineItemIndex += 1;
+  const spineItem = this._book.getSpineItem(this._currentSpineItemIndex);
+
+  if (!spineItem) {
+    return Promise.resolve();
   }
 
-  /**
-   *
-   */
-  zoomOut() {
-    this._displayRatio /= ZOOM_SCALE_MULTIPLIER;
-    redrawFrames.call(this);
-  }
+  const frameId = `next-epub-frame-${this._currentSpineItemIndex}`;
+  const frame = document.createElement('iframe');
+  frame.id = frameId;
+  frame.setAttribute('sandbox', 'allow-same-origin allow-scripts');
+  this._element.appendChild(frame);
+
+  return loadFrame.call(this, frame, spineItem.href).then(frame => {
+    frame.style['opacity'] = '1';
+    frame.style['height'] = `${frame.contentWindow.document.body.clientHeight + 100}px`;
+    frame.contentWindow.document.body.style['overflow'] = 'hidden';
+
+    this._frames.push(frame);
+
+    if (this._useScale) {
+      fitContent.call(this, frame);
+    }
+  });
 }
 
 /**
@@ -122,24 +128,6 @@ function fitContent(frame) {
   redrawFrames.call(this);
 }
 
-function redrawFrames() {
-  this._frames.forEach(frame => {
-    frame.style['height'] = `${Math.round(this._displayRatio * frame.contentDocument.body.clientHeight)}px`;
-
-    let leftMargin = Math.round((frame.clientWidth - this._displayRatio * frame.contentDocument.body.clientWidth) / 2);
-    if (leftMargin < 0) {
-      leftMargin = 0;
-    }
-
-    const document = frame.contentWindow.document;
-    const html = document.querySelector('html');
-
-    html.style['overflow-x'] = 'hidden';
-    html.style['transform-origin'] = '0 0 0';
-    html.style['transform'] = `scale(${this._displayRatio})`;
-    frame.style['margin-left'] = `${leftMargin}px`;
-  });
-}
 
 function onScroll() {
   if (this._element.scrollTop > this._element.scrollHeight - 2 * this._element.clientHeight) {

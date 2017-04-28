@@ -1,23 +1,58 @@
-export default class Base {
+class Base {
 
   constructor(element) {
     this._element = element;
+    this._displayRatio = 1;
+    this._position = 0;
   }
 
+  /**
+   * Display the book in a HTML frame
+   *
+   * @param book
+   */
   display(book) {
     this._book = book;
   }
 
-  displaySpine(spineItemIndex, position = 0) {
-    this._currentSpineItemIndex = spineItemIndex;
-    this._position = position;
-  }
-
+  /**
+   * Previous page
+   */
   previous() {
 
   }
 
+  /**
+   * Next page
+   */
   next() {
 
   }
+
+  /**
+   * Zoom in content
+   */
+  zoomIn() {
+    this._displayRatio *= Base.ZOOM_SCALE_MULTIPLIER;
+    this.redraw();
+  }
+
+  /**
+   * Zoom out content
+   */
+  zoomOut() {
+    this._displayRatio /= Base.ZOOM_SCALE_MULTIPLIER;
+    this.redraw();
+  }
+
+  /**
+   * Force redraw of frames
+   */
+  redraw() {
+
+  }
 }
+
+Base.ZOOM_SCALE_MULTIPLIER = 1.5;
+
+export default Base;

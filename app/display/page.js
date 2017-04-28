@@ -14,39 +14,11 @@ export default class Page extends EventedMixin(Base) {
     this._element.appendChild(this._frame);
   }
 
-  /**
-   * @param book
-   */
   display(book) {
     super.display(book);
-
-    this._currentSpineItemIndex = 0;
-    this.displaySpine(this._currentSpineItemIndex);
+    displaySpine.call(this, 0);
   }
 
-  /**
-   *
-   * @param spineItemIndex
-   */
-  displaySpine(spineItemIndex, position = 0) {
-    super.displaySpine(...arguments);
-
-    const spineItem = this._book.getSpineItem(spineItemIndex);
-
-    if (!spineItem) {
-      return Promise.resolve();
-    }
-
-    return loadFrame.call(this, spineItem.href).then(frame => {
-      this._contentHtml = frame.contentDocument.querySelector('html');
-      this._frame.contentWindow.scrollBy(Math.round(this._contentHtml.scrollWidth * position / 100), 0);
-      frame.style['opacity'] = '1';
-    });
-  }
-
-  /**
-   *
-   */
   previous() {
     if (this._contentHtml.scrollLeft === 0) {
       previousSpine.call(this, 100);
@@ -54,9 +26,6 @@ export default class Page extends EventedMixin(Base) {
     this._frame.contentWindow.scrollBy(-1 * (this._contentHtml.clientWidth + COLUMN_GAP), 0);
   }
 
-  /**
-   *
-   */
   next() {
     if (this._contentHtml.scrollLeft + this._contentHtml.clientWidth === this._contentHtml.scrollWidth) {
       nextSpine.call(this);
@@ -65,12 +34,38 @@ export default class Page extends EventedMixin(Base) {
   }
 }
 
+/**
+ *
+ * @returns {Element}
+ */
 function createFrame() {
   const frame = document.createElement('iframe');
   frame.id = 'next-epub-frame';
   frame.setAttribute('sandbox', 'allow-same-origin allow-scripts');
 
   return frame;
+}
+
+/**
+ *
+ * @param spineItemIndex
+ * @param position
+ */
+function displaySpine(spineItemIndex, position = 0) {
+  this._currentSpineItemIndex = spineItemIndex;
+  this._position = position;
+
+  const spineItem = this._book.getSpineItem(spineItemIndex);
+
+  if (!spineItem) {
+    return Promise.resolve();
+  }
+
+  return loadFrame.call(this, spineItem.href).then(frame => {
+    this._contentHtml = frame.contentDocument.querySelector('html');
+    this._frame.contentWindow.scrollBy(Math.round(this._contentHtml.scrollWidth * position / 100), 0);
+    frame.style['opacity'] = '1';
+  });
 }
 
 /**
@@ -107,7 +102,7 @@ function loadFrame(href) {
 function previousSpine(position = 0) {
   if (this._currentSpineItemIndex > 0) {
     this._currentSpineItemIndex -= 1;
-    this.displaySpine(this._currentSpineItemIndex, position);
+    displaySpine.call(this, this._currentSpineItemIndex, position);
   }
 }
 
@@ -117,6 +112,6 @@ function previousSpine(position = 0) {
 function nextSpine(position = 0) {
   if (this._currentSpineItemIndex < this._book.spineItemsCount - 1) {
     this._currentSpineItemIndex += 1;
-    this.displaySpine(this._currentSpineItemIndex, position);
+    displaySpine.call(this, this._currentSpineItemIndex, position);
   }
 }

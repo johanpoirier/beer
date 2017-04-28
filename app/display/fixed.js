@@ -1,8 +1,6 @@
 import Base from './base';
 import EventedMixin from '../mixin/evented';
 
-const ZOOM_SCALE_MULTIPLIER = 1.5;
-
 export default class Fixed extends EventedMixin(Base) {
 
   constructor(element) {
@@ -21,15 +19,11 @@ export default class Fixed extends EventedMixin(Base) {
     }
   }
 
-  get frameCount() {
-    return this._frames.length;
-  }
-
   display(book) {
     super.display(book);
 
     this._currentSpineItemIndex = 0;
-    this.displaySpines();
+    displaySpines.call(this);
   }
 
   /**
@@ -39,7 +33,7 @@ export default class Fixed extends EventedMixin(Base) {
     if (this._currentSpineItemIndex > this.frameCount) {
       this._currentSpineItemIndex -= this.frameCount;
     }
-    this.displaySpines();
+    displaySpines.call(this);
   }
 
   /**
@@ -47,30 +41,48 @@ export default class Fixed extends EventedMixin(Base) {
    */
   next() {
     this._currentSpineItemIndex += this.frameCount;
-    this.displaySpines();
+    displaySpines.call(this);
   }
 
   /**
    *
-   * @param spineItemIndex
    */
-  displaySpines() {
-    const spineDisplayPromises = [];
-
-    let index = 0;
+  redraw() {
     this._frames.forEach(frame => {
-      const spineItem = this._book.getSpineItem(this._currentSpineItemIndex + index);
-      if (spineItem) {
-        spineDisplayPromises.push(loadFrame.call(this, frame, spineItem.href).then(frame => {
-          fitContent.call(this, frame);
-          frame.style['opacity'] = '1';
-        }));
-      }
-      index++;
-    });
+      frame.style['width'] = `${Math.round(this._displayRatio * frame.contentDocument.body.clientWidth)}px`;
 
-    return Promise.all(spineDisplayPromises);
+      const html = frame.contentWindow.document.querySelector('html');
+      html.style['overflow-y'] = 'hidden';
+      html.style['transform-origin'] = '0 0 0';
+      html.style['transform'] = `scale(${this._displayRatio})`;
+    });
   }
+
+  get frameCount() {
+    return this._frames.length;
+  }
+}
+
+
+/**
+ *
+ */
+function displaySpines() {
+  const spineDisplayPromises = [];
+
+  let index = 0;
+  this._frames.forEach(frame => {
+    const spineItem = this._book.getSpineItem(this._currentSpineItemIndex + index);
+    if (spineItem) {
+      spineDisplayPromises.push(loadFrame.call(this, frame, spineItem.href).then(frame => {
+        fitContent.call(this, frame);
+        frame.style['opacity'] = '1';
+      }));
+    }
+    index++;
+  });
+
+  return Promise.all(spineDisplayPromises);
 }
 
 function createFrame(index) {
@@ -107,19 +119,9 @@ function fitContent(frame) {
   const body = document.querySelector('body');
 
   this._displayRatio = frame.clientHeight / body.clientHeight;
-  redrawFrames.call(this);
+  this.redraw(this);
 }
 
-function redrawFrames() {
-  this._frames.forEach(frame => {
-    frame.style['width'] = `${Math.round(this._displayRatio * frame.contentDocument.body.clientWidth)}px`;
-
-    const html = frame.contentWindow.document.querySelector('html');
-    html.style['overflow-y'] = 'hidden';
-    html.style['transform-origin'] = '0 0 0';
-    html.style['transform'] = `scale(${this._displayRatio})`;
-  });
-}
 
 function debounce(func, wait, immediate) {
   var timeout;
