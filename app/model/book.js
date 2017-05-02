@@ -7,7 +7,8 @@ export default class Book {
    * @param metadata The metadata extracted from opf file
    * @param spineItems The spine items extracted from opf file
    */
-  constructor(data, metadata, spineItems) {
+  constructor(hash, data, metadata, spineItems) {
+    this._hash = hash;
     this._data = data;
     this._metadata = metadata;
     this._spineItems = spineItems;
@@ -23,6 +24,10 @@ export default class Book {
 
   get firstSpineItem() {
     return this.getSpineItem(0);
+  }
+
+  get hash() {
+    return this._hash;
   }
 
   get metadata() {

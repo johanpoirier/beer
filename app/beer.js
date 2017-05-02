@@ -24,7 +24,7 @@ export default class Beer {
     return Promise.all([serviceWorkerInstall(), loadBook(url)])
       .then(([registration, book]) => {
         // service worker is ready, we send it the epub Blob
-        sendEpubToSw(url, book.data);
+        sendEpubToSw(book);
 
         return new Beer(book);
       });
@@ -73,7 +73,7 @@ function loadBook(url) {
   return fetch(url)
     .then(response => response.blob())
     .then(blob => Promise.all([blob, JSZip.loadAsync(blob).then(getOpf)]))
-    .then(([blob, opf]) => new Book(blob, opf.metadata, opf.spineItems));
+    .then(([blob, opf]) => new Book(hashCode(url), blob, opf.metadata, opf.spineItems));
 }
 
 function getFile(zip, path, format = 'string') {
@@ -85,7 +85,7 @@ function getFile(zip, path, format = 'string') {
 }
 
 function getBasePath(contentFilePath) {
-  var result = contentFilePath.match(/^(\w*)\/\w*\.opf$/);
+  const result = contentFilePath.match(/^(\w*)\/\w*\.opf$/);
   if (result) {
     return result[1] + '/';
   }
@@ -109,14 +109,15 @@ function getOpf(zip) {
     .then(([basePath, opfXml]) => Opf.create(basePath, parser.parseFromString(opfXml.trim(), 'text/xml')));
 }
 
-function sendEpubToSw(url, epub) {
+function sendEpubToSw(book) {
   if (!navigator.serviceWorker.controller) {
     console.warn('no controller for service worker!');
     return;
   }
+
   navigator.serviceWorker.controller.postMessage({
-    url: url,
-    blob: epub
+    hash: book.hash,
+    blob: book.data
   });
 }
 
@@ -124,4 +125,15 @@ function getDefaultDisplayOptions() {
   return {
     mode: 'page'
   };
+}
+
+function hashCode(string) {
+  let hash = 0, i, chr;
+  if (string.length === 0) return hash;
+  for (i = 0; i < string.length; i++) {
+    chr = string.charCodeAt(i);
+    hash = ((hash << 5) - hash) + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
 }

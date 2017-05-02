@@ -8,7 +8,7 @@ const container = document.querySelector('main');
 // - asterix.epub
 // - timote.epub
 
-Beer.withBook('/epubs/l-odyssee.epub')
+Beer.withBook('/epubs/asterix.epub')
   .then(reader => {
     const display = reader.displayBook(container);
 

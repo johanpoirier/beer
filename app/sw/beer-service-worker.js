@@ -1,8 +1,8 @@
 self.importScripts('jszip.js');
 
 const config = {
-  version: 'yamakazi4',
-  epubPattern: /____\/(.*)$/,
+  version: 'yamakazi-5',
+  epubPattern: /___\/\w+\/(.*)$/,
   cachePattern: /\.(?:css|js|jpg|png|ttf|woff|eot|otf|html|xhtml)$/,
   debug: true
 };
@@ -59,8 +59,8 @@ self.addEventListener('install', event => event.waitUntil(self.skipWaiting()));
  * The only message received is the epub data with its URL
  */
 self.addEventListener('message', event => {
-  self.epub = event.data.blob;
-  self.epubHash = hashCode(event.data.url);
+  self.epubData = event.data.blob;
+  self.epubHash = event.data.hash;
 });
 
 /**
@@ -121,7 +121,7 @@ function getZipResponse(mimeType, arrayBuffer) {
 }
 
 function getEpubBlob() {
-  return Promise.resolve(self.epub);
+  return Promise.resolve(self.epubData);
 }
 
 function getFileInEpub(filePath) {
@@ -172,15 +172,4 @@ function fetchFromCache(request) {
 
 function notFoundResponse(error) {
   return new Response(error, { status: 404 });
-}
-
-function hashCode(string) {
-  let hash = 0, i, chr;
-  if (string.length === 0) return hash;
-  for (i = 0; i < string.length; i++) {
-    chr = string.charCodeAt(i);
-    hash = ((hash << 5) - hash) + chr;
-    hash |= 0; // Convert to 32bit integer
-  }
-  return hash;
 }

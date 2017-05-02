@@ -74,7 +74,7 @@ function displaySpine(spineItemIndex, position = 0) {
 function loadFrame(href) {
   return new Promise(resolve => {
     this._frame.style['opacity'] = '0';
-    this._frame.setAttribute('src', `____/${href}`);
+    this._frame.setAttribute('src', `___/${this._book.hash}/${href}`);
 
     const self = this;
 

@@ -100,7 +100,7 @@ function createFrame(index) {
 function loadFrame(frame, href) {
   return new Promise(resolve => {
     frame.style['opacity'] = '0';
-    frame.setAttribute('src', `____/${href}`);
+    frame.setAttribute('src', `___/${this._book.hash}/${href}`);
 
     const self = this;
 
