@@ -1,7 +1,4 @@
-export const FORMAT_REFLOWABLE = 'reflowable';
-export const FORMAT_FIXED_LAYOUT = 'pre-paginated';
-
-export default class Book {
+class Book {
   /**
    * @param data Blob object of the epub file
    * @param metadata The metadata extracted from opf file
@@ -12,6 +9,9 @@ export default class Book {
     this._data = data;
     this._metadata = metadata;
     this._spineItems = spineItems;
+
+    this._format = extractFormat(metadata);
+    this._spread = extractRenditionSpread(metadata);
   }
 
   getSpineItem(index) {
@@ -34,20 +34,20 @@ export default class Book {
     return this._metadata;
   }
 
-  get format() {
-    const metaLayout = this._metadata['meta'].find(data => data['_property'] === 'rendition:layout');
-    if (metaLayout) {
-      return metaLayout['__text'];
-    }
-    return FORMAT_REFLOWABLE;
-  }
-
   get isReflowable() {
-    return this.format === FORMAT_REFLOWABLE;
+    return this._format === Book.FORMAT_REFLOWABLE;
   }
 
   get isFixedLayout() {
-    return this.format === FORMAT_FIXED_LAYOUT;
+    return this._format === Book.FORMAT_FIXED_LAYOUT;
+  }
+
+  get isNoSpread() {
+    return this._spread === Book.RENDITION_SPREAD_NONE;
+  }
+
+  get isSpreadAuto() {
+    return this._spread === Book.RENDITION_SPREAD_AUTO;
   }
 
   get spineItems() {
@@ -57,4 +57,28 @@ export default class Book {
   get data() {
     return this._data;
   }
+}
+
+Book.FORMAT_REFLOWABLE = 'reflowable';
+Book.FORMAT_FIXED_LAYOUT = 'pre-paginated';
+
+Book.RENDITION_SPREAD_NONE = 'none';
+Book.RENDITION_SPREAD_AUTO = 'auto';
+
+export default Book;
+
+function extractFormat(metadata) {
+  const metaLayout = metadata['meta'].find(data => data['_property'] === 'rendition:layout');
+  if (metaLayout) {
+    return metaLayout['__text'];
+  }
+  return Book.FORMAT_REFLOWABLE;
+}
+
+function extractRenditionSpread(metadata) {
+  const metaRenditionSpread = metadata['meta'].find(data => data['_property'] === 'rendition:spread');
+  if (metaRenditionSpread) {
+    return metaRenditionSpread['__text'];
+  }
+  return Book.RENDITION_SPREAD_AUTO;
 }

@@ -12,15 +12,22 @@ export default class Fixed extends EventedMixin(Base) {
     }, 100), false);
 
     this._frames = [];
-    for (let i = 0; i < 2; i++) {
-      const frame = createFrame(i);
-      this._frames.push(frame);
-      this._element.appendChild(frame);
-    }
   }
 
   display(book) {
     super.display(book);
+
+    this._frameCount = 1;
+    if (book.isSpreadAuto) {
+      this._frameCount = 2;
+    }
+
+    for (let i = 0; i < this._frameCount; i++) {
+      const frame = createFrame(i);
+      this._frames.push(frame);
+      this._element.appendChild(frame);
+      frame.addEventListener('load', () => frameLoaded.call(this, frame));
+    }
 
     this._currentSpineItemIndex = 0;
     displaySpines.call(this);
@@ -49,20 +56,36 @@ export default class Fixed extends EventedMixin(Base) {
    */
   redraw() {
     this._frames.forEach(frame => {
-      frame.style['width'] = `${Math.round(this._displayRatio * frame.contentDocument.body.clientWidth)}px`;
-
       const html = frame.contentWindow.document.querySelector('html');
+
+      frame.style['width'] = '0';
+      html.style['transform'] = '';
+
+      frame.style['width'] = `${Math.round(this._displayRatio * frame.contentDocument.body.scrollWidth)}px`;
+
       html.style['overflow-y'] = 'hidden';
       html.style['transform-origin'] = '0 0 0';
       html.style['transform'] = `scale(${this._displayRatio})`;
+
+      frame.style['opacity'] = '1';
     });
   }
 
   get frameCount() {
-    return this._frames.length;
+    return this._frameCount;
   }
 }
 
+
+/**
+ *
+ * @param frame
+ */
+function frameLoaded(frame) {
+  this.trigger('load', frame.contentDocument);
+  fitContent.call(this, frame);
+  frame.contentWindow.addEventListener('unload', () => frame.style['opacity'] = '0', false);
+}
 
 /**
  *
@@ -74,10 +97,7 @@ function displaySpines() {
   this._frames.forEach(frame => {
     const spineItem = this._book.getSpineItem(this._currentSpineItemIndex + index);
     if (spineItem) {
-      spineDisplayPromises.push(loadFrame.call(this, frame, spineItem.href).then(frame => {
-        fitContent.call(this, frame);
-        frame.style['opacity'] = '1';
-      }));
+      spineDisplayPromises.push(loadFrame(frame, this._book.hash, spineItem.href));
     }
     index++;
   });
@@ -88,6 +108,7 @@ function displaySpines() {
 function createFrame(index) {
   const frame = document.createElement('iframe');
   frame.id = `next-epub-frame-${index}`;
+  frame.src = 'about:blank';
   frame.setAttribute('sandbox', 'allow-same-origin allow-scripts');
 
   return frame;
@@ -95,22 +116,14 @@ function createFrame(index) {
 
 /**
  * @param frame
+ * @param hash The book hash
  * @param href The relative URL to a .html file inside the epub
  */
-function loadFrame(frame, href) {
+function loadFrame(frame, hash, href) {
   return new Promise(resolve => {
     frame.style['opacity'] = '0';
-    frame.setAttribute('src', `___/${this._book.hash}/${href}`);
-
-    const self = this;
-
-    function frameOnLoad() {
-      self.trigger('load', frame.contentWindow.document);
-      frame.removeEventListener('load', frameOnLoad, true);
-      resolve(frame);
-    }
-
-    frame.addEventListener('load', frameOnLoad, true);
+    frame.setAttribute('src', `___/${hash}/${href}`);
+    resolve(frame);
   });
 }
 
@@ -119,21 +132,25 @@ function fitContent(frame) {
   const body = document.querySelector('body');
 
   this._displayRatio = frame.clientHeight / body.clientHeight;
+
   this.redraw(this);
 }
 
-
 function debounce(func, wait, immediate) {
-  var timeout;
+  let timeout;
   return function () {
-    var context = this, args = arguments;
-    var later = function () {
+    const context = this;
+    const args = arguments;
+    const later = function () {
       timeout = null;
       if (!immediate) func.apply(context, args);
     };
-    var callNow = immediate && !timeout;
+    const callNow = immediate && !timeout;
+
     clearTimeout(timeout);
     timeout = setTimeout(later, wait);
-    if (callNow) func.apply(context, args);
+    if (callNow) {
+      func.apply(context, args);
+    }
   };
 }

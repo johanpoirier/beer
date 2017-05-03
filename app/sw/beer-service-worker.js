@@ -1,9 +1,9 @@
 self.importScripts('jszip.js');
 
 const config = {
-  version: 'yamakazi-5',
+  version: 'yamakazi-9',
   epubPattern: /___\/\w+\/(.*)$/,
-  cachePattern: /\.(?:css|js|jpg|png|ttf|woff|eot|otf|html|xhtml)$/,
+  cachePattern: /\.(?:css|js|jpg|png|ttf|woff|eot|otf|html|xhtml|mp3)$/,
   debug: true
 };
 
@@ -61,6 +61,7 @@ self.addEventListener('install', event => event.waitUntil(self.skipWaiting()));
 self.addEventListener('message', event => {
   self.epubData = event.data.blob;
   self.epubHash = event.data.hash;
+  self.epubZip = null;
 });
 
 /**
@@ -124,18 +125,28 @@ function getEpubBlob() {
   return Promise.resolve(self.epubData);
 }
 
+function getEpubZip(blob) {
+  if (self.epubZip) {
+    return Promise.resolve(self.epubZip);
+  }
+  return JSZip.loadAsync(blob).then(zip => {
+    self.epubZip = zip;
+    return zip;
+  });
+}
+
 function getFileInEpub(filePath) {
   console.debug(`[BEER-SW] fetching ${filePath} from the epub file`);
   return getEpubBlob()
-    .then(function (blob) { return JSZip.loadAsync(blob); })
-    .then(function (zip) {
+    .then(getEpubZip)
+    .then(zip => {
       const zipFile = zip.file(filePath);
       if (!zipFile) {
         throw new Exception(`${filePath} not found in zip file`);
       }
       return zipFile.async('arraybuffer');
     })
-    .then(function(data) { return getZipResponse(getMimeTypeFromFileExtension(filePath), data); });
+    .then(data => getZipResponse(getMimeTypeFromFileExtension(filePath), data));
 }
 
 function getMimeTypeFromFileExtension(filePath) {
