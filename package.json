@@ -18,15 +18,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/johanpoirier/were-next.git"
+    "url": "git+https://github.com/johanpoirier/beer.git"
   },
   "keywords": [],
   "author": "Johan Poirier <johan.poirier@gmail.com> (https://twitter.com/johanpoirier)",
   "license": "Apache License 2.0",
   "bugs": {
-    "url": "https://github.com/johanpoirier/were-next/issues"
+    "url": "https://github.com/johanpoirier/beer/issues"
   },
-  "homepage": "https://github.com/johanpoirier/were-next#readme",
+  "homepage": "https://github.com/johanpoirier/beer#readme",
   "devDependencies": {
     "copy-webpack-plugin": "^4.0.1",
     "onchange": "^3.2.1",

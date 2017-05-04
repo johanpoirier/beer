@@ -15,10 +15,10 @@ export default class Beer {
   }
 
   /**
-   * Create new Next reader that will load a book from the url
+   * Create new BEER reader that will load a book from the url
    *
    * @param url The URL of the epub
-   * @returns Promise that resolves with the Next reader
+   * @returns Promise that resolves with the BEER reader
    */
   static withBook(url) {
     return Promise.all([serviceWorkerInstall(), loadBook(url)])
