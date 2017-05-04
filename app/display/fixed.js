@@ -1,5 +1,6 @@
 import Base from './base';
 import EventedMixin from '../mixin/evented';
+import { debounce } from '../tools';
 
 export default class Fixed extends EventedMixin(Base) {
 
@@ -134,23 +135,4 @@ function fitContent(frame) {
   this._displayRatio = frame.clientHeight / body.clientHeight;
 
   this.redraw(this);
-}
-
-function debounce(func, wait, immediate) {
-  let timeout;
-  return function () {
-    const context = this;
-    const args = arguments;
-    const later = function () {
-      timeout = null;
-      if (!immediate) func.apply(context, args);
-    };
-    const callNow = immediate && !timeout;
-
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-    if (callNow) {
-      func.apply(context, args);
-    }
-  };
 }

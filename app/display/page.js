@@ -1,5 +1,6 @@
 import Base from './base';
 import EventedMixin from '../mixin/evented';
+import { debounce } from '../tools';
 
 const COLUMN_GAP = 20;
 
@@ -8,10 +9,14 @@ export default class Page extends EventedMixin(Base) {
   constructor(element) {
     super(...arguments);
 
-    this._element.classList.add('page');
-
     this._frame = createFrame();
+
+    this._element.classList.add('page');
     this._element.appendChild(this._frame);
+
+    window.addEventListener('resize', debounce(() => {
+      fitContent(this._frame);
+    }, 100), false);
   }
 
   display(book) {
@@ -82,18 +87,25 @@ function loadFrame(href) {
       self.trigger('load', self._frame.contentDocument);
       self._frame.removeEventListener('load', frameOnLoad, true);
 
-      const html = self._frame.contentDocument.querySelector('html');
-      html.style['column-count'] = '2';
-      html.style['column-gap'] = `${COLUMN_GAP}px`;
-      html.style['break-inside'] = 'avoid';
-      html.style['height'] = `${self._frame.clientHeight}px`;
-      html.style['overflow'] = 'hidden';
+      fitContent(self._frame);
 
       resolve(self._frame);
     }
 
     this._frame.addEventListener('load', frameOnLoad, true);
   });
+}
+
+/**
+ * @param frame
+ */
+function fitContent(frame) {
+  const html = frame.contentDocument.querySelector('html');
+  html.style['column-count'] = '2';
+  html.style['column-gap'] = `${COLUMN_GAP}px`;
+  html.style['break-inside'] = 'avoid';
+  html.style['height'] = `${frame.clientHeight}px`;
+  html.style['overflow'] = 'hidden';
 }
 
 /**
