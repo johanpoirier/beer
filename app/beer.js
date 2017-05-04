@@ -22,12 +22,8 @@ export default class Beer {
    */
   static withBook(url) {
     return Promise.all([serviceWorkerInstall(), loadBook(url)])
-      .then(([registration, book]) => {
-        // service worker is ready, we send it the epub Blob
-        sendEpubToSw(book);
-
-        return new Beer(book);
-      });
+      .then(([registration, book]) => sendEbookWhenServiceWorkerReady(registration, book))
+      .then(book => new Beer(book));
   }
 
   get book() {
@@ -110,14 +106,17 @@ function getOpf(zip) {
 }
 
 function sendEpubToSw(book) {
-  if (!navigator.serviceWorker.controller) {
-    console.warn('no controller for service worker!');
-    return;
-  }
+  return new Promise(resolve => {
+    if (navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        hash: book.hash,
+        blob: book.data
+      });
+    } else {
+      console.warn('no controller for service worker!');
+    }
 
-  navigator.serviceWorker.controller.postMessage({
-    hash: book.hash,
-    blob: book.data
+    resolve(book);
   });
 }
 
@@ -136,4 +135,29 @@ function hashCode(string) {
     hash |= 0; // Convert to 32bit integer
   }
   return hash;
+}
+
+function sendEbookWhenServiceWorkerReady(registration, book) {
+  if (registration.active !== null && registration.active.state === 'activated') {
+    registration.onupdatefound = () => onServiceWorkerUpdate(registration, book);
+    return sendEpubToSw(book);
+  }
+
+  return new Promise(resolve => {
+    registration.onupdatefound = () => onServiceWorkerUpdate(registration, book, resolve);
+  });
+}
+
+function onServiceWorkerUpdate(registration, book, callback) {
+    const installingWorker = registration.installing;
+
+    installingWorker.onstatechange = () => {
+      if (installingWorker.state === 'activated' && navigator.serviceWorker.controller) {
+        console.debug(`[BEER-SW] worker updated and activated`);
+        if (callback) {
+          return sendEpubToSw(book).then(callback);
+        }
+        return sendEpubToSw(book);
+      }
+    }
 }

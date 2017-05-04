@@ -1,9 +1,9 @@
 self.importScripts('jszip.js');
 
 const config = {
-  version: 'yamakazi-9',
+  version: 'suzuki-2',
   epubPattern: /___\/\w+\/(.*)$/,
-  cachePattern: /\.(?:css|js|jpg|png|ttf|woff|eot|otf|html|xhtml|mp3)$/,
+  cachePattern: /\.(?:css|js|jpg|png|svg|ttf|woff|eot|otf|html|xhtml|mp3|m4a)$/,
   debug: true
 };
 
@@ -37,7 +37,7 @@ self.addEventListener('activate', function (event) {
   function onActivate(version) {
     return caches.keys()
       .then(cacheKeys => {
-        const oldCacheKeys = cacheKeys.filter(key => key.indexOf(version) !== 0);
+        const oldCacheKeys = cacheKeys.filter(key => (key.indexOf(version) !== 0) && (key.indexOf('ebook') !== 0));
         const deletePromises = oldCacheKeys.map(oldKey => caches.delete(oldKey));
         return Promise.all(deletePromises);
       });
@@ -59,7 +59,7 @@ self.addEventListener('install', event => event.waitUntil(self.skipWaiting()));
  * The only message received is the epub data with its URL
  */
 self.addEventListener('message', event => {
-  self.epubData = event.data.blob;
+  self.epubBlob = event.data.blob;
   self.epubHash = event.data.hash;
   self.epubZip = null;
 });
@@ -96,7 +96,7 @@ self.addEventListener('fetch', event => {
       event.respondWith(
         fetchFromCache(request)
           .catch(() => getFileInEpub(filePath))
-          .then(response => addToCache(cacheName(options.version), options, request, response))
+          .then(response => addToCache(cacheName(self.epubHash), options, request, response))
           .catch(notFoundResponse())
       );
     }
@@ -121,15 +121,11 @@ function getZipResponse(mimeType, arrayBuffer) {
   return new Response(new Blob([arrayBuffer], { type: mimeType }), init);
 }
 
-function getEpubBlob() {
-  return Promise.resolve(self.epubData);
-}
-
-function getEpubZip(blob) {
+function getEpubZip() {
   if (self.epubZip) {
     return Promise.resolve(self.epubZip);
   }
-  return JSZip.loadAsync(blob).then(zip => {
+  return JSZip.loadAsync(self.epubBlob).then(zip => {
     self.epubZip = zip;
     return zip;
   });
@@ -137,8 +133,7 @@ function getEpubZip(blob) {
 
 function getFileInEpub(filePath) {
   console.debug(`[BEER-SW] fetching ${filePath} from the epub file`);
-  return getEpubBlob()
-    .then(getEpubZip)
+  return getEpubZip()
     .then(zip => {
       const zipFile = zip.file(filePath);
       if (!zipFile) {
@@ -157,8 +152,8 @@ function getMimeTypeFromFileExtension(filePath) {
   return mimeTypeMap.default;
 }
 
-function cacheName(version) {
-  return `${version}-${self.epubHash}`;
+function cacheName(hash) {
+  return `ebook-${hash}`;
 }
 
 function addToCache(cacheKey, options, request, response) {

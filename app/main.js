@@ -8,7 +8,7 @@ const container = document.querySelector('main');
 // - asterix.epub
 // - timote.epub
 
-Beer.withBook('/epubs/asterix.epub')
+Beer.withBook('/epubs/les-animaux-avec-son.epub')
   .then(reader => {
     const display = reader.displayBook(container);
 
