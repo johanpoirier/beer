@@ -15,7 +15,7 @@ export default class Page extends EventedMixin(Base) {
     this._element.appendChild(this._frame);
 
     window.addEventListener('resize', debounce(() => {
-      fitContent(this._frame);
+      fitContent.call(this, this._frame);
     }, 100), false);
   }
 
@@ -25,17 +25,21 @@ export default class Page extends EventedMixin(Base) {
   }
 
   previous() {
-    if (this._contentHtml.scrollLeft === 0) {
+    if (this._frame.contentDocument.body.scrollLeft === 0) {
       previousSpine.call(this, 100);
+      return;
     }
     this._frame.contentWindow.scrollBy(-1 * (this._contentHtml.clientWidth + COLUMN_GAP), 0);
+    this._position = computePosition(this._frame);
   }
 
   next() {
-    if (this._contentHtml.scrollLeft + this._contentHtml.clientWidth === this._contentHtml.scrollWidth) {
+    if (this._frame.contentDocument.body.scrollLeft + this._contentHtml.clientWidth === this._contentHtml.scrollWidth) {
       nextSpine.call(this);
+      return;
     }
     this._frame.contentWindow.scrollBy(this._contentHtml.clientWidth + COLUMN_GAP, 0);
+    this._position = computePosition(this._frame);
   }
 }
 
@@ -87,7 +91,7 @@ function loadFrame(href) {
       self.trigger('load', self._frame.contentDocument);
       self._frame.removeEventListener('load', frameOnLoad, true);
 
-      fitContent(self._frame);
+      fitContent.call(self, self._frame);
 
       resolve(self._frame);
     }
@@ -106,6 +110,10 @@ function fitContent(frame) {
   html.style['break-inside'] = 'avoid';
   html.style['height'] = `${frame.clientHeight}px`;
   html.style['overflow'] = 'hidden';
+
+  // position is not quite good yet
+  const rawScrollLeft = html.scrollWidth * this._position / 100;
+  frame.contentWindow.scrollTo(rawScrollLeft - (rawScrollLeft % (html.clientWidth + COLUMN_GAP)), 0);
 }
 
 /**
@@ -126,4 +134,9 @@ function nextSpine(position = 0) {
     this._currentSpineItemIndex += 1;
     displaySpine.call(this, this._currentSpineItemIndex, position);
   }
+}
+
+function computePosition(frame) {
+  const displayHtml = frame.contentDocument.querySelector('html');
+  return 100 * (frame.contentDocument.body.scrollLeft + displayHtml.clientWidth) / (displayHtml.scrollWidth + displayHtml.clientWidth);
 }
