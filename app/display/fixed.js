@@ -108,7 +108,7 @@ function displaySpines() {
 
 function createFrame(index) {
   const frame = document.createElement('iframe');
-  frame.id = `next-epub-frame-${index}`;
+  frame.id = `beer-epub-frame-${index}`;
   frame.src = 'about:blank';
   frame.setAttribute('sandbox', 'allow-same-origin allow-scripts');
 

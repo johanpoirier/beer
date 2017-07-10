@@ -8,9 +8,10 @@ const container = document.querySelector('main');
 // - asterix.epub
 // - timote.epub
 
-Beer.withBook('/epubs/l-odyssee.epub')
+Beer.withBook('/epubs/l-appel-de-la-foret.epub')
   .then(reader => {
     const display = reader.displayBook(container);
+    //const display = reader.displayBook(container, { cfi: 'epubcfi(/6/8[id004]!/4/24/1:0)' }); // display with CFI provided
 
     // listen to events in main page frame
     listenToKeyboard(document, display);

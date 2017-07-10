@@ -59,7 +59,7 @@ export default class Beer {
     } else {
       readerDisplay = new Page(htmlElement);
     }
-    readerDisplay.display(this._book);
+    readerDisplay.display(this._book, this._displayOptions.cfi || null);
 
     return readerDisplay;
   }

@@ -72,7 +72,7 @@ function displayNextSpine() {
     return Promise.resolve();
   }
 
-  const frameId = `next-epub-frame-${this._currentSpineItemIndex}`;
+  const frameId = `beer-epub-frame-${this._currentSpineItemIndex}`;
   const frame = document.createElement('iframe');
   frame.id = frameId;
   frame.setAttribute('sandbox', 'allow-same-origin allow-scripts');
