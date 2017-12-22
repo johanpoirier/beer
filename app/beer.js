@@ -17,7 +17,9 @@ export default class Beer {
   static init() {
     return new Promise((resolve, reject) => {
       serviceWorkerInstall()
-        .then(() => {
+        .then(registration => {
+          //registration.onupdatefound = () => onServiceWorkerUpdate(registration); // should do something with that
+
           if (navigator.serviceWorker.controller !== null) {
             return resolve();
           }
@@ -153,18 +155,4 @@ function hashCode(string) {
     hash |= 0; // Convert to 32bit integer
   }
   return hash;
-}
-
-function onServiceWorkerUpdate(registration, book, callback) {
-  const installingWorker = registration.installing;
-
-  installingWorker.onstatechange = () => {
-    if (installingWorker.state === 'activated' && navigator.serviceWorker.controller) {
-      console.debug(`[BEER-SW] worker updated and activated`);
-      if (callback) {
-        return sendEpubToSw(book).then(callback);
-      }
-      return sendEpubToSw(book);
-    }
-  }
 }

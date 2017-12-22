@@ -1,7 +1,7 @@
 self.importScripts('/jszip.js');
 
 const config = {
-  version: 'suzuki-4',
+  version: 'suzuki-5',
   epubPattern: /___\/(\w+)\/(.*)$/,
   cachePattern: /\.(?:css|js|jpg|png|svg|ttf|woff|eot|otf|html|xhtml|mp3|m4a)$/,
   debug: true
