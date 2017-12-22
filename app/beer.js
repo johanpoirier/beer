@@ -14,6 +14,27 @@ export default class Beer {
     this._book = book;
   }
 
+  static init() {
+    return new Promise((resolve, reject) => {
+      serviceWorkerInstall()
+        .then(() => {
+          if (navigator.serviceWorker.controller !== null) {
+            return resolve();
+          }
+
+          navigator.serviceWorker.oncontrollerchange = function () {
+            this.controller.onstatechange = function () {
+              if (this.state === 'activated') {
+                window.location.reload(); // SW do not control the page immediatly in FF :(
+                resolve();
+              }
+            };
+          }
+        })
+        .catch(reject);
+    });
+  }
+
   /**
    * Create new BEER reader that will load a book from the url
    *
@@ -21,9 +42,10 @@ export default class Beer {
    * @returns Promise that resolves with the BEER reader
    */
   static withBook(url) {
-    return Promise.all([serviceWorkerInstall(), loadBook(url)])
-      .then(([registration, book]) => sendEbookWhenServiceWorkerReady(registration, book))
-      .then(book => new Beer(book));
+    return loadBook(url)
+      .then(sendEpubToSw)
+      .then(book => new Beer(book))
+      .catch(console.error);
   }
 
   get book() {
@@ -107,14 +129,10 @@ function getOpf(zip) {
 
 function sendEpubToSw(book) {
   return new Promise(resolve => {
-    if (navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({
-        hash: book.hash,
-        blob: book.data
-      });
-    } else {
-      console.warn('no controller for service worker!');
-    }
+    navigator.serviceWorker.controller.postMessage({
+      hash: book.hash,
+      blob: book.data
+    });
 
     resolve(book);
   });
@@ -131,33 +149,22 @@ function hashCode(string) {
   if (string.length === 0) return hash;
   for (i = 0; i < string.length; i++) {
     chr = string.charCodeAt(i);
-    hash = ((hash << 5) - hash) + chr;
+    hash = Math.abs((hash << 5) - hash) + chr;
     hash |= 0; // Convert to 32bit integer
   }
   return hash;
 }
 
-function sendEbookWhenServiceWorkerReady(registration, book) {
-  if (registration.active !== null && registration.active.state === 'activated') {
-    registration.onupdatefound = () => onServiceWorkerUpdate(registration, book);
-    return sendEpubToSw(book);
-  }
-
-  return new Promise(resolve => {
-    registration.onupdatefound = () => onServiceWorkerUpdate(registration, book, resolve);
-  });
-}
-
 function onServiceWorkerUpdate(registration, book, callback) {
-    const installingWorker = registration.installing;
+  const installingWorker = registration.installing;
 
-    installingWorker.onstatechange = () => {
-      if (installingWorker.state === 'activated' && navigator.serviceWorker.controller) {
-        console.debug(`[BEER-SW] worker updated and activated`);
-        if (callback) {
-          return sendEpubToSw(book).then(callback);
-        }
-        return sendEpubToSw(book);
+  installingWorker.onstatechange = () => {
+    if (installingWorker.state === 'activated' && navigator.serviceWorker.controller) {
+      console.debug(`[BEER-SW] worker updated and activated`);
+      if (callback) {
+        return sendEpubToSw(book).then(callback);
       }
+      return sendEpubToSw(book);
     }
+  }
 }

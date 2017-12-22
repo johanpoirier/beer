@@ -7,8 +7,10 @@ const container = document.querySelector('main');
 // - l-odyssee.epub
 // - asterix.epub
 // - timote.epub
+// - 9782824704043_jim-lindien.epub
 
-Beer.withBook('/epubs/l-appel-de-la-foret.epub')
+Beer.init()
+  .then(() => Beer.withBook('/epubs/asterix.epub'), console.error)
   .then(reader => {
     const display = reader.displayBook(container);
     //const display = reader.displayBook(container, { cfi: 'epubcfi(/6/8[id004]!/4/24/1:0)' }); // display with CFI provided

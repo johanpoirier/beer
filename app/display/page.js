@@ -57,7 +57,6 @@ export default class Page extends EventedMixin(Base) {
 function createFrame() {
   const frame = document.createElement('iframe');
   frame.id = 'beer-epub-frame';
-  frame.setAttribute('sandbox', 'allow-same-origin allow-scripts');
 
   return frame;
 }

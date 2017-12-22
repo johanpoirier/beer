@@ -43,8 +43,10 @@ self.addEventListener('activate', function (event) {
       });
   }
 
+  console.debug(`[BEER-SW] Activate`);
   event.waitUntil(onActivate(config.version).then(function() {
     console.debug(`[BEER-SW] Claiming clients for version ${config.version}`);
+    self.clients.matchAll({ includeUncontrolled: true }).then(clients => console.debug('[BEER-SW] Clients', clients.map(c => c.url)));
     return self.clients.claim();
   }));
 });
@@ -53,7 +55,10 @@ self.addEventListener('activate', function (event) {
  * On SW installation:
  *  - force immediate installation
  */
-self.addEventListener('install', event => event.waitUntil(self.skipWaiting()));
+self.addEventListener('install', event => {
+  console.debug(`[BEER-SW] Installation`);
+  return event.waitUntil(self.skipWaiting());
+});
 
 /**
  * The only message received is the epub data with its URL
