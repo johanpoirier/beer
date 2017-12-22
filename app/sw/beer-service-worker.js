@@ -1,4 +1,4 @@
-self.importScripts('jszip.js');
+self.importScripts('/jszip.js');
 
 const config = {
   version: 'suzuki-4',

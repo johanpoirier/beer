@@ -28,12 +28,12 @@
   },
   "homepage": "https://github.com/johanpoirier/beer#readme",
   "devDependencies": {
-    "copy-webpack-plugin": "^4.0.1",
-    "onchange": "^3.2.1",
-    "parallelshell": "^2.0.0",
-    "webpack": "^2.4.1"
+    "copy-webpack-plugin": "^4.3.1",
+    "onchange": "^3.3.0",
+    "parallelshell": "^3.0.2",
+    "webpack": "^3.10.0"
   },
   "dependencies": {
-    "jszip": "^3.1.3"
+    "jszip": "^3.1.5"
   }
 }
