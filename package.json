@@ -1,8 +1,8 @@
 {
-  "name": "beer",
-  "version": "1.0.0",
+  "name": "BEER",
+  "version": "0.1.0",
   "description": "BEst Epub Reader",
-  "main": "app/main.js",
+  "main": "app/beer.js",
   "scripts": {
     "start": "npm run dev",
     "clean": "rm -rf dist/ && mkdir dist",
@@ -16,10 +16,7 @@
     "predev": "npm run clean",
     "dev": "npm run build && parallelshell 'webpack --watch' 'npm run watch:html' 'npm run watch:sw'"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/johanpoirier/beer.git"
-  },
+  "repository": "git+https://github.com/johanpoirier/beer.git",
   "keywords": [],
   "author": "Johan Poirier <johan.poirier@gmail.com> (https://twitter.com/johanpoirier)",
   "license": "Apache License 2.0",
@@ -28,6 +25,9 @@
   },
   "homepage": "https://github.com/johanpoirier/beer#readme",
   "devDependencies": {
+    "@babel/core": "^7.0.0-beta.36",
+    "@babel/preset-env": "^7.0.0-beta.36",
+    "babel-loader": "^8.0.0-beta.0",
     "copy-webpack-plugin": "^4.3.1",
     "onchange": "^3.3.0",
     "parallelshell": "^3.0.2",
@@ -35,5 +35,6 @@
   },
   "dependencies": {
     "jszip": "^3.1.5"
-  }
+  },
+  "private": true
 }
