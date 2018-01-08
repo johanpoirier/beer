@@ -32,6 +32,14 @@ module.exports = {
         to: 'jszip.js'
       },
       {
+        from: 'node_modules/node-forge/dist/forge.min.js',
+        to: 'forge.js'
+      },
+      {
+        from: 'node_modules/node-forge/dist/forge.min.js.map',
+        to: 'forge.min.js.map'
+      },
+      {
         from: 'epubs/',
         to: 'epubs'
       }
