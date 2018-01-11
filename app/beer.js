@@ -145,7 +145,8 @@ function sendEpubToSw(book) {
   return new Promise(resolve => {
     navigator.serviceWorker.controller.postMessage({
       hash: book.hash,
-      blob: book.data
+      blob: book.data,
+      encryptedItems: book.encryptionData.encryptedItems
     });
 
     resolve(book);

@@ -42,6 +42,10 @@ module.exports = {
       {
         from: 'epubs/',
         to: 'epubs'
+      },
+      {
+        from: 'app/favicon.ico',
+        to: 'favicon.ico'
       }
     ])
   ]
