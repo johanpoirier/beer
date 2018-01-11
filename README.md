@@ -22,5 +22,5 @@ cd docker
 ./run.sh
 ```
 
-Faire pointer ensuite le domaine next.local vers l'IP donné par le script `run.sh`.
+Faire pointer ensuite le domaine beer.local vers l'IP donné par le script `run.sh`.
 Les services workers ne fonctionnent qu'en HTTPS, il faudra donc récupérer le certificat généré depuis l'image docker, l'ajouter au système et l'approuver par défaut.
