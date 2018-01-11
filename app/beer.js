@@ -1,6 +1,7 @@
 import serviceWorkerInstall from './sw/install';
 import Opf from './model/opf';
 import Book from './model/book';
+import Encryption from './model/encryption';
 import Scroll from './display/scroll';
 import Page from './display/page';
 import Fixed from './display/fixed';
@@ -92,8 +93,10 @@ export default class Beer {
 function loadBook(url) {
   return fetch(url)
     .then(response => response.blob())
-    .then(blob => Promise.all([blob, JSZip.loadAsync(blob).then(getOpf)]))
-    .then(([blob, opf]) => new Book(hashCode(url), blob, opf.metadata, opf.spineItems));
+    .then(blob => Promise.all([blob, JSZip.loadAsync(blob)]))
+    .then(([blob, zip]) => Promise.all([blob, zip, getOpf(zip)]))
+    .then(([blob, zip, opf]) => Promise.all([blob, opf, getEncryptionData(zip, opf)]))
+    .then(([blob, opf, encryptionData]) => new Book(hashCode(url), blob, opf.metadata, opf.spineItems, encryptionData));
 }
 
 function getFile(zip, path, format = 'string') {
@@ -127,6 +130,15 @@ function getOpf(zip) {
       return Promise.all([getBasePath(opfFilePath), getFile(zip, opfFilePath)]);
     })
     .then(([basePath, opfXml]) => Opf.create(basePath, parser.parseFromString(opfXml.trim(), 'text/xml')));
+}
+
+function getEncryptionData(zip, opf) {
+  const parser = new DOMParser();
+  return getFile(zip, 'META-INF/encryption.xml')
+    .then(encryptionXml => {
+      const xmlDoc = parser.parseFromString(encryptionXml.trim(), 'text/xml');
+      return Encryption.create(xmlDoc, opf);
+    }, () => null);
 }
 
 function sendEpubToSw(book) {
