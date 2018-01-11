@@ -58,14 +58,3 @@ nsComment           = "OpenSSL Generated Certificate"
 
 DNS.1       = beer.local
 DNS.2       = www.beer.local
-DNS.3       = mail.beer.local
-DNS.4       = ftp.beer.local
-
-# Add these if you need them. But usually you don't want them or
-#   need them in production. You may need them for development.
-# DNS.5       = localhost
-# DNS.6       = localhost.localdomain
-# DNS.7       = 127.0.0.1
-
-# IPv6 localhost
-# DNS.8     = ::1
