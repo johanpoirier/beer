@@ -1,7 +1,7 @@
 import Base from './base';
 import EventedMixin from '../mixin/evented';
 import EpubCfi from '../lib/epubcfi';
-import { debounce } from '../tools';
+import {debounce} from '../tools';
 
 const COLUMN_GAP = 20;
 const COLUMN_DEFAULT_COUNT = 2;
@@ -14,12 +14,12 @@ export default class Page extends EventedMixin(Base) {
     super(...arguments);
 
     this._frame = createFrame();
-    this._columns = COLUMN_DEFAULT_COUNT;
+    this._columnCount = COLUMN_DEFAULT_COUNT;
     this._element.classList.add('page');
     this._element.appendChild(this._frame);
 
     window.addEventListener('resize', debounce(() => {
-      fitContent.call(this, this._frame, this._columns);
+      fitContent.call(this, this._frame, this._columnCount);
     }, 100), false);
   }
 
@@ -160,10 +160,11 @@ function loadFrame(href) {
 
 /**
  * @param frame
+ * @param columnCount
  */
-function fitContent(frame, columns) {
+function fitContent(frame, columnCount) {
   const html = frame.contentDocument.querySelector('html');
-  html.style['column-count'] = columns;
+  html.style['column-count'] = columnCount;
   html.style['column-gap'] = `${COLUMN_GAP}px`;
   html.style['break-inside'] = 'avoid';
   html.style['height'] = `${frame.clientHeight}px`;
@@ -171,7 +172,7 @@ function fitContent(frame, columns) {
 
   // position is not quite good yet
   const rawScrollLeft = html.scrollWidth * this._position / 100;
-  frame.contentWindow.scrollTo(rawScrollLeft - (rawScrollLeft % (html.clientWidth + (columns-1)*COLUMN_GAP)), 0);
+  frame.contentWindow.scrollTo(rawScrollLeft - (rawScrollLeft % (html.clientWidth + (columnCount - 1) * COLUMN_GAP)), 0);
 }
 
 /**
@@ -194,6 +195,12 @@ function nextSpine(position = 0) {
   }
 }
 
+/**
+ *
+ * @param cfiBase
+ * @param frame
+ * @returns {number}
+ */
 function computePosition(cfiBase, frame) {
   const displayHtml = frame.contentDocument.querySelector('html');
   const cfi = computeCfi(cfiBase, displayHtml);
@@ -201,6 +208,12 @@ function computePosition(cfiBase, frame) {
   return 100 * frame.contentWindow.scrollX / displayHtml.scrollWidth;
 }
 
+/**
+ *
+ * @param cfiBase
+ * @param content
+ * @returns {*}
+ */
 function computeCfi(cfiBase, content) {
   const firstVisibleElement = Array.from(content.querySelectorAll('body > *')).reduce((first, current) => {
     if (first) return first;
@@ -210,6 +223,12 @@ function computeCfi(cfiBase, content) {
   return epubCfi.generateCfiFromElement(firstVisibleElement, cfiBase);
 }
 
+/**
+ * Very simple solution to handle font size management
+ * Could be useful to check out Readium-CSS from J.Panoz
+ *
+ * @param multiplier
+ */
 function zoom(multiplier) {
   this._frame.contentWindow.document.body.style['font-size'] = `${100 * multiplier}%`;
 }
