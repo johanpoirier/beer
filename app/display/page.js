@@ -4,6 +4,7 @@ import EpubCfi from '../lib/epubcfi';
 import { debounce } from '../tools';
 
 const COLUMN_GAP = 20;
+const COLUMN_DEFAULT_COUNT = 2;
 
 const epubCfi = new EpubCfi();
 
@@ -13,7 +14,7 @@ export default class Page extends EventedMixin(Base) {
     super(...arguments);
 
     this._frame = createFrame();
-    this._columns = 2;
+    this._columns = COLUMN_DEFAULT_COUNT;
     this._element.classList.add('page');
     this._element.appendChild(this._frame);
 
@@ -34,15 +35,15 @@ export default class Page extends EventedMixin(Base) {
   zoomIn() {
     // Stop zoom if ratio is grater than 2
     if (this._displayRatio > 2) return;
-    zoom.call(this, Base.FONT_SCALE_MULTIPLIER);
     this._displayRatio *= Base.FONT_SCALE_MULTIPLIER;
+    zoom.call(this, this._displayRatio);
   }
 
   zoomOut() {
     // Stop zoom if ratio is small than 2
     if (this._displayRatio < 0.5) return;
-    zoom.call(this, 1.0/Base.FONT_SCALE_MULTIPLIER);
     this._displayRatio /= Base.FONT_SCALE_MULTIPLIER;
+    zoom.call(this, this._displayRatio);
   }
 
 
@@ -210,23 +211,5 @@ function computeCfi(cfiBase, content) {
 }
 
 function zoom(multiplier) {
-  if (multiplier == 1) return;
-  const fontSizes = [];
-  const all = this._frame.contentWindow.document.body.getElementsByTagName('*');
-  for (var i = -1, l = all.length; ++i < l;) {
-    var elem = all[i];
-    if (elem.style['font-size'] !== undefined) {
-      var style = window.getComputedStyle(elem, null).getPropertyValue('font-size');
-      var fontSize = parseFloat(style);
-      fontSizes[i] = (fontSize *  multiplier) + 'px';
-    }
-    else {
-      fontSizes[i] = undefined;
-    }
-  }
-  for (var i = -1, l = all.length; ++i < l;) {
-    if (fontSizes[i] !== undefined) {
-      all[i].style.fontSize = fontSizes[i];
-    }
-  }
+  this._frame.contentWindow.document.body.style['font-size'] = `${100 * multiplier}%`;
 }
