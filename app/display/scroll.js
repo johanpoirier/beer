@@ -17,10 +17,10 @@ export default class Scroll extends EventedMixin(Base) {
   display(book) {
     super.display(book);
 
-    this._useScale = book.format === 'pre-paginated';
     this._currentSpineItemIndex = -1;
 
-    this.displayNextSpine().then(this.displayNextSpine.bind(this));
+    // display 2 spines at start
+    displayNextSpine.call(this).then(displayNextSpine.bind(this));
   }
 
   /**
@@ -34,7 +34,32 @@ export default class Scroll extends EventedMixin(Base) {
    *
    */
   next() {
+    if (this._element.scrollTop > this._element.scrollHeight - 2 * this._element.clientHeight) {
+      displayNextSpine.call(this);
+    }
     this._element.scrollBy(0, Math.round(this._element.clientHeight * 0.95));
+  }
+
+  /**
+   * Zoom in just multiply display ratio by FONT_SCALE_MULTIPLIER
+   */
+  zoomIn() {
+    // Stop zoom if ratio is grater than 2
+    if (this._displayRatio > 2) return;
+    this._displayRatio *= Base.FONT_SCALE_MULTIPLIER;
+    zoom.call(this, this._displayRatio);
+    this.redraw();
+  }
+
+  /**
+   * Zoom out just divise display ratio by FONT_SCALE_MULTIPLIER
+   */
+  zoomOut() {
+    // Stop zoom if ratio is small than 2
+    if (this._displayRatio < 0.5) return;
+    this._displayRatio /= Base.FONT_SCALE_MULTIPLIER;
+    zoom.call(this, this._displayRatio);
+    this.redraw();
   }
 
   /**
@@ -42,20 +67,13 @@ export default class Scroll extends EventedMixin(Base) {
    */
   redraw() {
     this._frames.forEach(frame => {
-      frame.style['height'] = `${Math.round(this._displayRatio * frame.contentDocument.body.clientHeight)}px`;
-
-      let leftMargin = Math.round((frame.clientWidth - this._displayRatio * frame.contentDocument.body.clientWidth) / 2);
-      if (leftMargin < 0) {
-        leftMargin = 0;
-      }
-
       const document = frame.contentWindow.document;
       const html = document.querySelector('html');
 
+      frame.style['height'] = `${document.body.clientHeight + 100}px`;
+
       html.style['overflow-x'] = 'hidden';
       html.style['transform-origin'] = '0 0 0';
-      html.style['transform'] = `scale(${this._displayRatio})`;
-      frame.style['margin-left'] = `${leftMargin}px`;
     });
   }
 }
@@ -79,15 +97,13 @@ function displayNextSpine() {
   this._element.appendChild(frame);
 
   return loadFrame.call(this, frame, spineItem.href).then(frame => {
+    zoomFrame.call(this, frame, this._displayRatio);
     frame.style['opacity'] = '1';
-    frame.style['height'] = `${frame.contentWindow.document.body.clientHeight + 100}px`;
+    frame.style['height'] = `${frame.contentWindow.document.body.clientHeight + 50}px`;
     frame.contentWindow.document.body.style['overflow'] = 'hidden';
 
     this._frames.push(frame);
 
-    if (this._useScale) {
-      fitContent.call(this, frame);
-    }
   });
 }
 
@@ -111,26 +127,19 @@ function loadFrame(frame, href) {
   });
 }
 
-function fitContent(frame) {
-  if (!this._useScale) {
-    return;
-  }
-
-  if (!frame) {
-    frame = this._frames[this._currentSpineItemIndex];
-  }
-  const document = frame.contentWindow.document;
-  const body = document.querySelector('body');
-
-  if (!this._displayRatio) {
-    this._displayRatio = frame.clientWidth / body.clientWidth;
-  }
-  redrawFrames.call(this);
+function zoomFrame(frame, multiplier) {
+  frame.contentWindow.document.body.style['font-size'] = `${100 * multiplier}%`;
 }
-
 
 function onScroll() {
   if (this._element.scrollTop > this._element.scrollHeight - 2 * this._element.clientHeight) {
-    this.displayNextSpine();
+    displayNextSpine.call(this);
   }
+}
+
+function zoom(multiplier) {
+  if (multiplier == 1) return;
+  this._frames.forEach(frame => {
+    zoomFrame(frame, multiplier);
+  });
 }
