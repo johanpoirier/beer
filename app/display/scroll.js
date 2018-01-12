@@ -19,6 +19,7 @@ export default class Scroll extends EventedMixin(Base) {
 
     this._currentSpineItemIndex = -1;
 
+    // display 2 spines at start
     displayNextSpine.call(this).then(displayNextSpine.bind(this));
   }
 

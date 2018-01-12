@@ -14,7 +14,7 @@ Beer.init()
   .then(reader => {
     const displayOptions = {
       mode: 'scroll'
-    }
+    };
     const display = reader.displayBook(container, displayOptions);
     //const display = reader.displayBook(container, { cfi: 'epubcfi(/6/8[id004]!/4/24/1:0)' }); // display with CFI provided
 
