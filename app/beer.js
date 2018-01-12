@@ -1,6 +1,9 @@
 import serviceWorkerInstall from './sw/install';
+import forge from './lib/forge.sha1';
+import JSZip from '../node_modules/jszip/dist/jszip.js';
 import Opf from './model/opf';
 import Book from './model/book';
+import Encryption from './model/encryption';
 import Scroll from './display/scroll';
 import Page from './display/page';
 import Fixed from './display/fixed';
@@ -27,7 +30,7 @@ export default class Beer {
           navigator.serviceWorker.oncontrollerchange = function () {
             this.controller.onstatechange = function () {
               if (this.state === 'activated') {
-                window.location.reload(); // SW do not control the page immediatly in FF :(
+                window.location.reload(); // SW do not control the page immediately in FF :(
                 resolve();
               }
             };
@@ -92,8 +95,10 @@ export default class Beer {
 function loadBook(url) {
   return fetch(url)
     .then(response => response.blob())
-    .then(blob => Promise.all([blob, JSZip.loadAsync(blob).then(getOpf)]))
-    .then(([blob, opf]) => new Book(hashCode(url), blob, opf.metadata, opf.spineItems));
+    .then(blob => Promise.all([blob, JSZip.loadAsync(blob)]))
+    .then(([blob, zip]) => Promise.all([blob, zip, getOpf(zip)]))
+    .then(([blob, zip, opf]) => Promise.all([blob, opf, getEncryptionData(zip, opf)]))
+    .then(([blob, opf, encryptionData]) => new Book(hashCode(url), blob, opf.metadata, opf.spineItems, encryptionData));
 }
 
 function getFile(zip, path, format = 'string') {
@@ -129,11 +134,21 @@ function getOpf(zip) {
     .then(([basePath, opfXml]) => Opf.create(basePath, parser.parseFromString(opfXml.trim(), 'text/xml')));
 }
 
+function getEncryptionData(zip, opf) {
+  const parser = new DOMParser();
+  return getFile(zip, 'META-INF/encryption.xml')
+    .then(encryptionXml => {
+      const xmlDoc = parser.parseFromString(encryptionXml.trim(), 'text/xml');
+      return Encryption.create(xmlDoc, opf);
+    }, () => Encryption.empty());
+}
+
 function sendEpubToSw(book) {
   return new Promise(resolve => {
     navigator.serviceWorker.controller.postMessage({
       hash: book.hash,
-      blob: book.data
+      blob: book.data,
+      encryptedItems: book.encryptionData.encryptedItems
     });
 
     resolve(book);

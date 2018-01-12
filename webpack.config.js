@@ -1,6 +1,4 @@
-const webpack = require('webpack');
 const path = require('path');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: {
@@ -24,25 +22,5 @@ module.exports = {
         }
       }
     ]
-  },
-  plugins: [
-    new CopyWebpackPlugin([
-      {
-        from: 'node_modules/jszip/dist/jszip.min.js',
-        to: 'jszip.js'
-      },
-      {
-        from: 'node_modules/node-forge/dist/forge.min.js',
-        to: 'forge.js'
-      },
-      {
-        from: 'node_modules/node-forge/dist/forge.min.js.map',
-        to: 'forge.min.js.map'
-      },
-      {
-        from: 'epubs/',
-        to: 'epubs'
-      }
-    ])
-  ]
+  }
 };

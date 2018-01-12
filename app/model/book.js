@@ -1,14 +1,17 @@
 class Book {
   /**
+   * @param hash The SHA-1 hash of the file name
    * @param data Blob object of the epub file
    * @param metadata The metadata extracted from opf file
    * @param spineItems The spine items extracted from opf file
+   * @param encryptionData The encryption data (items and algorithms)
    */
-  constructor(hash, data, metadata, spineItems) {
+  constructor(hash, data, metadata, spineItems, encryptionData) {
     this._hash = hash;
     this._data = data;
     this._metadata = metadata;
     this._spineItems = spineItems;
+    this._encryptionData = encryptionData;
 
     this._format = extractFormat(metadata);
     this._spread = extractRenditionSpread(metadata);
@@ -56,6 +59,10 @@ class Book {
 
   get data() {
     return this._data;
+  }
+
+  get encryptionData() {
+    return this._encryptionData;
   }
 }
 

@@ -149,7 +149,7 @@ function loadFrame(href) {
       self.trigger('load', self._frame.contentDocument);
       self._frame.removeEventListener('load', frameOnLoad, true);
 
-      fitContent.call(self, self._frame, self._columns);
+      fitContent.call(self, self._frame, self._columnCount);
 
       resolve(self._frame);
     }
