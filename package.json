@@ -1,6 +1,6 @@
 {
   "name": "BEER",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "BEst Epub Reader",
   "main": "app/beer.js",
   "scripts": {

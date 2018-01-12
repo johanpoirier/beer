@@ -1,8 +1,6 @@
 import Base from './base';
 import EventedMixin from '../mixin/evented';
 
-const ZOOM_SCALE_MULTIPLIER = 1.5;
-
 export default class Scroll extends EventedMixin(Base) {
 
   constructor(element) {
@@ -80,7 +78,6 @@ export default class Scroll extends EventedMixin(Base) {
 
 /**
  *
- * @param spineItemIndex
  */
 function displayNextSpine() {
   this._currentSpineItemIndex += 1;
@@ -108,6 +105,7 @@ function displayNextSpine() {
 }
 
 /**
+ * @param frame The frame where to load the spine
  * @param href The relative URL to a .html file inside the epub
  */
 function loadFrame(frame, href) {
@@ -138,8 +136,8 @@ function onScroll() {
 }
 
 function zoom(multiplier) {
-  if (multiplier == 1) return;
-  this._frames.forEach(frame => {
-    zoomFrame(frame, multiplier);
-  });
+  if (multiplier === 1) {
+    return;
+  }
+  this._frames.forEach(frame => zoomFrame(frame, multiplier));
 }
