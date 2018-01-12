@@ -35,6 +35,12 @@ export default class Encryption {
 
     return encryption;
   }
+
+  static empty() {
+    return {
+      encryptedItems: []
+    }
+  }
 }
 
 function urnUuidToByteArray(id) {

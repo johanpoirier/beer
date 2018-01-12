@@ -6,15 +6,21 @@
   "scripts": {
     "start": "npm run dev",
     "clean": "rm -rf dist/ && mkdir dist",
-    "html": "cp app/index.html dist/",
+    "copy": "npm run copy:html && npm run copy:misc && npm run copy:epubs",
+    "copy:html": "cp app/index.html dist/",
+    "copy:misc": "cp app/favicon.ico dist/",
+    "copy:epubs": "mkdir -p dist/epubs && cp epubs/* dist/epubs/",
     "js": "webpack",
-    "sw": "cp app/sw/beer-service-worker.js dist/",
-    "build": "npm run html && npm run js && npm run sw",
+    "sw": "cat node_modules/jszip/dist/jszip.js > dist/beer-service-worker.js && cat app/sw/file-decryptor.js >> dist/beer-service-worker.js && cat app/sw/beer-service-worker.js >> dist/beer-service-worker.js",
+    "sw:package": "cat node_modules/jszip/dist/jszip.min.js > dist/beer-service-worker.js && uglifyjs --compress --mangle -- app/sw/file-decryptor.js >> dist/beer-service-worker.js && uglifyjs --compress --mangle -- app/sw/beer-service-worker.js >> dist/beer-service-worker.js",
+    "build": "npm run copy && npm run js && npm run sw",
     "watch": "watch -d -u 'npm run build' app/*",
-    "watch:html": "onchange 'app/*.html' -- npm run html",
-    "watch:sw": "onchange 'app/sw/beer-service-worker.js' -- npm run sw",
+    "watch:html": "onchange 'app/*.html' -- npm run copy:html",
+    "watch:sw": "onchange 'app/sw/*.js' -- npm run sw",
     "predev": "npm run clean",
-    "dev": "npm run build && parallelshell 'webpack --watch' 'npm run watch:html' 'npm run watch:sw'"
+    "dev": "npm run build && parallelshell 'webpack --watch' 'npm run watch:html' 'npm run watch:sw'",
+    "prepackage": "npm run clean",
+    "package": "npm run copy && npm run js -- -p && npm run sw:package"
   },
   "repository": "git+https://github.com/johanpoirier/beer.git",
   "keywords": [],
@@ -28,14 +34,13 @@
     "@babel/core": "^7.0.0-beta.36",
     "@babel/preset-env": "^7.0.0-beta.36",
     "babel-loader": "^8.0.0-beta.0",
-    "copy-webpack-plugin": "^4.3.1",
     "onchange": "^3.3.0",
     "parallelshell": "^3.0.2",
+    "uglify-es": "^3.3.5",
     "webpack": "^3.10.0"
   },
   "dependencies": {
-    "jszip": "^3.1.5",
-    "node-forge": "^0.7.1"
+    "jszip": "^3.1.5"
   },
   "private": true
 }

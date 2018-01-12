@@ -1,7 +1,5 @@
-self.importScripts('/jszip.js');
-
 const config = {
-  version: 'ninja-9',
+  version: 'ninja-11',
   epubPattern: /___\/(\w+)\/(.*)$/,
   cachePattern: /\.(?:css|js|jpg|png|svg|ttf|woff|eot|otf|html|xhtml|mp3|m4a)$/,
   debug: true
@@ -24,41 +22,6 @@ const mimeTypeMap = {
   svg: 'image/svg+xml',
   ttf: 'application/x-font-truetype',
   xhtml: 'application/xhtml+xml'
-};
-
-class FontDecryptor {
-  static decrypt(epub, filePath, data) {
-    if (filePath in epub.encryptedItems) {
-      const encryptedItem = epub.encryptedItems[filePath];
-      console.debug(`[BEER-SW] decrypting ${filePath} from the epub file with ${encryptedItem.algorithm}`);
-      return decryptionMethods[encryptedItem.algorithm](data, encryptedItem.key);
-    }
-    return data;
-  }
-
-  static unObfuscteXor(data, prefix, key) {
-    const masklen = key.length;
-    const array = new Uint8Array(data);
-    for (let i = 0; i < prefix; i++) {
-      array[i] = (array[i] ^ (key[i % masklen]));
-    }
-    return array.buffer;
-  }
-
-  static unObfusqIdpf(data, key) {
-    const prefixLength = 1040;
-    return FontDecryptor.unObfuscteXor(data, prefixLength, key.idpf)
-  }
-
-  static unObfusqAdobe(data, key) {
-    const prefixLength = 1024;
-    return FontDecryptor.unObfuscteXor(data, prefixLength, key.adobe)
-  }
-}
-
-const decryptionMethods = {
-  'http://www.idpf.org/2008/embedding': FontDecryptor.unObfusqIdpf,
-  'http://ns.adobe.com/pdf/enc#RC': FontDecryptor.unObfusqAdobe
 };
 
 if (config.debug === false) {
@@ -191,7 +154,7 @@ function getFileInEpub(epubHash, filePath) {
       }
       return zipFile.async('arraybuffer');
     })
-    .then(data => FontDecryptor.decrypt(self.epubs[epubHash], filePath, data))
+    .then(data => FileDecryptor.decrypt(self.epubs[epubHash], filePath, data))
     .then(data => getZipResponse(getMimeTypeFromFileExtension(filePath), data));
 }
 
