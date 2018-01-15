@@ -19,11 +19,12 @@ export default class Fixed extends EventedMixin(Base) {
     super.display(book);
 
     /* start to fix layout for each spine */
-    book.setFixedSpines().forEach(spread => {
+    this.spreads = book.setFixedSpines()
+    this.spreads.forEach(spread => {
       createFrame.call(this, spread);
     });
-
-    this._currentSpineItemIndex = 0;
+    this._currentSpineIndex = 0;
+    this._nextSpine = 0;
     displaySpines.call(this);
   }
 
@@ -31,9 +32,9 @@ export default class Fixed extends EventedMixin(Base) {
    *
    */
   previous() {
-    if (this._currentSpineItemIndex > this.frameCount) {
-      this._currentSpineItemIndex -= this.frameCount;
-    }
+    this._currentSpineIndex -= this._nextSpine;
+    if (this._currentSpineIndex < 0) this._currentSpineIndex = 0;
+    this._nextSpine = 0;
     displaySpines.call(this);
   }
 
@@ -41,7 +42,8 @@ export default class Fixed extends EventedMixin(Base) {
    *
    */
   next() {
-    this._currentSpineItemIndex += this.frameCount;
+    this._currentSpineIndex += this._nextSpine;
+    this._nextSpine = 0;
     displaySpines.call(this);
   }
 
@@ -87,17 +89,23 @@ function frameLoaded(frame) {
  */
 function displaySpines() {
   const spineDisplayPromises = [];
-  let spineItem = this._book.getSpineItem(this._currentSpineItemIndex);
 
-  if (spineItem) {
-    spineDisplayPromises.push(loadFrame(this._frames[spineItem.where], this._book.hash, spineItem.href));
-    if (this._book.needMoreItem(this._currentSpineItemIndex)) {
-      spineItem = this._book.getSpineItem(this._currentSpineItemIndex + 1);
-      if (spineItem) {
+  /* spreads are sorted as 'center', 'left', 'right' */
+  this.spreads.forEach(spread => {
+    let spineItem = this._book.getSpineItem(this._currentSpineIndex+this._nextSpine);
+    if (spineItem) {
+      if (spread === spineItem.where) {
         spineDisplayPromises.push(loadFrame(this._frames[spineItem.where], this._book.hash, spineItem.href));
+        this._nextSpine += 1;
+      }
+      else {
+        spineDisplayPromises.push(clearFrame(this._frames[spread]));
       }
     }
-  }
+    else {
+      spineDisplayPromises.push(clearFrame(this._frames[spread]));
+    }
+  });
   return Promise.all(spineDisplayPromises);
 }
 
@@ -137,6 +145,14 @@ function loadFrame(frame, hash, href) {
   return new Promise(resolve => {
     frame.style['opacity'] = '0';
     frame.setAttribute('src', `___/${hash}/${href}`);
+    resolve(frame);
+  });
+}
+
+function clearFrame(frame) {
+  return new Promise(resolve => {
+    frame.style['opacity'] = '0';
+    frame.setAttribute('src', 'about:blank');
     resolve(frame);
   });
 }
