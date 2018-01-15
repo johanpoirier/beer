@@ -30,6 +30,11 @@ class Book {
     return this.getSpineItem(0);
   }
 
+  needMoreItem(index) {
+    const item = this._spineItems[index];
+    return item && item.where == 'left';
+  }
+
   get hash() {
     return this._hash;
   }
@@ -64,6 +69,40 @@ class Book {
 
   get encryptionData() {
     return this._encryptionData;
+  }
+
+  setFixedSpines() {
+    var spinesWhere = [];
+    for (let i = 0; i < this._spineItems.length; i++) {
+      var spine = this._spineItems[i];
+      /* set where the spine has to be displayed */
+      if (this.isNoSpread) {
+        spine.where = 'center';
+      }
+      else {
+        if (spine.properties.indexOf(Book.PAGE_SPREAD_LEFT) > -1) {
+          spine.where = 'left';
+        }
+        else if (spine.properties.indexOf(Book.PAGE_SPREAD_RIGHT) > -1) {
+          spine.where = 'right';
+        }
+        else if (spine.properties.indexOf(Book.PAGE_SPREAD_CENTER) > -1) {
+          spine.where = 'center';
+        }
+        else {
+          if ((i % 2) === 0) {
+            spine.where = 'left';
+          }
+          else {
+            spine.where = 'right';
+          }
+        }
+      }
+      spinesWhere.push(spine.where);
+      /* TODO : add orientation */
+    }
+    /* use sort to have : center, left, right in this order */
+    return new Set(spinesWhere.sort());
   }
 }
 
@@ -138,6 +177,20 @@ Book.RENDITION_ORIENTATION_PORTRAIT = 'portrait';
  * The given spine item is not orientation constrained.
  */
 Book.RENDITION_ORIENTATION_AUTO = 'auto';
+
+/**
+ * When a Reading System is rendering synthetic spreads, the default behavior
+ * is to populate the spread, which conceptually consists of two adjacent
+ * viewports, by rendering the next Content Document in the next available
+ * unpopulated viewport, where the location of “next” is determined by the
+ * given page progression direction, or by local declarations within content
+ * documents. By providing one of the page-spread-* properties on the spine
+ * itemref element, the author can override this automatic population behavior
+ * by forcing the given Content Document to be placed in a particular viewport.
+ */
+Book.PAGE_SPREAD_LEFT = 'page-spread-left';
+Book.PAGE_SPREAD_RIGHT = 'page-spread-right';
+Book.PAGE_SPREAD_CENTER = 'rendition:page-spread-center';
 
 
 export default Book;

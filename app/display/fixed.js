@@ -12,23 +12,16 @@ export default class Fixed extends EventedMixin(Base) {
       fitContent.call(this, this._frames[0]);
     }, 100), false);
 
-    this._frames = [];
+    this._frames = {};
   }
 
   display(book) {
     super.display(book);
 
-    this._frameCount = 1;
-    if (book.isSpreadAuto) {
-      this._frameCount = 2;
-    }
-
-    for (let i = 0; i < this._frameCount; i++) {
-      const frame = createFrame(i);
-      this._frames.push(frame);
-      this._element.appendChild(frame);
-      frame.addEventListener('load', () => frameLoaded.call(this, frame));
-    }
+    /* start to fix layout for each spine */
+    book.setFixedSpines().forEach(spread => {
+      createFrame.call(this, spread);
+    });
 
     this._currentSpineItemIndex = 0;
     displaySpines.call(this);
@@ -56,7 +49,8 @@ export default class Fixed extends EventedMixin(Base) {
    *
    */
   redraw() {
-    this._frames.forEach(frame => {
+    for (let spread in this._frames) {
+      const frame = this._frames[spread];
       const html = frame.contentWindow.document.querySelector('html');
 
       frame.style['width'] = '0';
@@ -69,7 +63,7 @@ export default class Fixed extends EventedMixin(Base) {
       html.style['transform'] = `scale(${this._displayRatio})`;
 
       frame.style['opacity'] = '1';
-    });
+    }
   }
 
   get frameCount() {
@@ -93,25 +87,45 @@ function frameLoaded(frame) {
  */
 function displaySpines() {
   const spineDisplayPromises = [];
+  let spineItem = this._book.getSpineItem(this._currentSpineItemIndex);
 
-  let index = 0;
-  this._frames.forEach(frame => {
-    const spineItem = this._book.getSpineItem(this._currentSpineItemIndex + index);
-    if (spineItem) {
-      spineDisplayPromises.push(loadFrame(frame, this._book.hash, spineItem.href));
+  if (spineItem) {
+    spineDisplayPromises.push(loadFrame(this._frames[spineItem.where], this._book.hash, spineItem.href));
+    if (this._book.needMoreItem(this._currentSpineItemIndex)) {
+      spineItem = this._book.getSpineItem(this._currentSpineItemIndex + 1);
+      if (spineItem) {
+        spineDisplayPromises.push(loadFrame(this._frames[spineItem.where], this._book.hash, spineItem.href));
+      }
     }
-    index++;
-  });
-
+  }
   return Promise.all(spineDisplayPromises);
 }
 
-function createFrame(index) {
-  const frame = document.createElement('iframe');
-  frame.id = `beer-epub-frame-${index}`;
-  frame.src = 'about:blank';
+function createFrame(where) {
+  /* create container */
+  const container = document.createElement('div');
+  container.classList.add('container');
+  container.classList.add(where);
 
+  const frame = document.createElement('iframe');
+  frame.id = `beer-epub-frame-${where}`;
+  frame.src = 'about:blank';
+  frame.addEventListener('load', () => frameLoaded.call(this, frame));
+  
+  container.appendChild(frame);
+  this._element.appendChild(container);
+
+  this._frames[where] = frame;
   return frame;
+}
+
+function enableContainer(where) {
+  const container = this._element.querySelector(`div.container${where}`);
+  container.style['display'] = 'flex';
+}
+function disableContainer(where) {
+  const container = this._element.querySelector(`div.container${where}`);
+  container.style['display'] = 'none';
 }
 
 /**
