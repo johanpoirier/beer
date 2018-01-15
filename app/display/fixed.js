@@ -55,15 +55,9 @@ export default class Fixed extends EventedMixin(Base) {
       const frame = this._frames[spread];
       const html = frame.contentWindow.document.querySelector('html');
 
-      frame.style['width'] = '0';
-      html.style['transform'] = '';
-
-      frame.style['width'] = `${Math.round(this._displayRatio * frame.contentDocument.body.scrollWidth)}px`;
-
-      html.style['overflow-y'] = 'hidden';
-      html.style['transform-origin'] = '0 0 0';
-      html.style['transform'] = `scale(${this._displayRatio})`;
-
+      html.style['overflow'] = 'hidden';
+      frame.style['transform-origin'] = '0 0 0';
+      frame.style['transform'] = `scale(${this._displayRatio})`;
       frame.style['opacity'] = '1';
     }
   }
@@ -161,7 +155,7 @@ function fitContent(frame) {
   const document = frame.contentWindow.document;
   const body = document.querySelector('body');
 
-  this._displayRatio = frame.clientHeight / body.clientHeight;
+  this._displayRatio = Math.min(frame.parentElement.clientHeight / body.clientHeight, frame.parentElement.clientWidth / body.clientWidth);
 
   this.redraw(this);
 }
