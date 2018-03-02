@@ -6,12 +6,13 @@ class Book {
    * @param spineItems The spine items extracted from opf file
    * @param encryptionData The encryption data (items and algorithms)
    */
-  constructor(hash, data, metadata, spineItems, encryptionData) {
+  constructor(hash, data, metadata, spineItems, license, encryptionData) {
     this._hash = hash;
     this._data = data;
     this._metadata = metadata;
     this._spineItems = spineItems;
     this._encryptionData = encryptionData;
+    this._license = license;
 
     this._format = extractFormat(metadata);
     this._spread = extractRenditionSpread(metadata);

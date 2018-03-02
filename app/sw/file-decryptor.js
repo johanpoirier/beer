@@ -1,6 +1,7 @@
 const decryptionMethods = {
   'http://www.idpf.org/2008/embedding': unObfusqIdpf,
-  'http://ns.adobe.com/pdf/enc#RC': unObfusqAdobe
+  'http://ns.adobe.com/pdf/enc#RC': unObfusqAdobe,
+  'http://www.w3.org/2001/04/xmlenc#aes256-cbc':lcpDecrypt
 };
 
 class FileDecryptor {
@@ -31,4 +32,10 @@ function unObfusqIdpf(data, key) {
 function unObfusqAdobe(data, key) {
   const prefixLength = 1024;
   return unObfuscteXor(data, prefixLength, key.adobe)
+}
+
+function lcpDecrypt(data, key) {
+  const array = new Uint8Array(data);
+  // Todo call aes decryption
+  return array.buffer;
 }

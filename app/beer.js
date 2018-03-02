@@ -1,8 +1,9 @@
 import serviceWorkerInstall from './sw/install';
-import forge from './lib/forge.sha1';
+import forge from './lib/forge.beer';
 import JSZip from '../node_modules/jszip/dist/jszip.js';
 import Opf from './model/opf';
 import Book from './model/book';
+import License from './model/lcp';
 import Encryption from './model/encryption';
 import Scroll from './display/scroll';
 import Page from './display/page';
@@ -46,8 +47,8 @@ export default class Beer {
    * @param url The URL of the epub
    * @returns Promise that resolves with the BEER reader
    */
-  static withBook(url) {
-    return loadBook(url)
+  static withBook(url, passphrase = null) {
+    return loadBook(url, passphrase)
       .then(sendEpubToSw)
       .then(book => new Beer(book))
       .catch(console.error);
@@ -92,13 +93,14 @@ export default class Beer {
   }
 }
 
-function loadBook(url) {
+function loadBook(url, passphrase) {
   return fetch(url)
     .then(response => response.blob())
     .then(blob => Promise.all([blob, JSZip.loadAsync(blob)]))
     .then(([blob, zip]) => Promise.all([blob, zip, getOpf(zip)]))
-    .then(([blob, zip, opf]) => Promise.all([blob, opf, getEncryptionData(zip, opf)]))
-    .then(([blob, opf, encryptionData]) => new Book(hashCode(url), blob, opf.metadata, opf.spineItems, encryptionData));
+    .then(([blob, zip, opf]) => Promise.all([blob, zip, opf, getLcpLicense(zip, passphrase)]))
+    .then(([blob, zip, opf, license]) => Promise.all([blob, opf, license, getEncryptionData(zip, opf)]))
+    .then(([blob, opf, license, encryptionData]) => new Book(hashCode(url), blob, opf.metadata, opf.spineItems, license, encryptionData));
 }
 
 function getFile(zip, path, format = 'string') {
@@ -141,6 +143,11 @@ function getEncryptionData(zip, opf) {
       const xmlDoc = parser.parseFromString(encryptionXml.trim(), 'text/xml');
       return Encryption.create(xmlDoc, opf);
     }, () => Encryption.empty());
+}
+
+function getLcpLicense(zip) {
+  return getFile(zip, 'META-INF/license.lcpl')
+    .then(jsonLicense => new License(jsonLicense));
 }
 
 function sendEpubToSw(book) {

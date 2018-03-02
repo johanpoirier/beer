@@ -47,6 +47,9 @@ export default class Encryption {
 function urnUuidToByteArray(id) {
   const uuidRegexp = /(urn:uuid:)?([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})/i;
   const matchResults = uuidRegexp.exec(id);
+  if (!matchResults) {
+    return null;
+  }
   const rawUuid = matchResults[2] + matchResults[3] + matchResults[4] + matchResults[5] + matchResults[6];
   if (!rawUuid || rawUuid.length !== 32) {
     return null;
