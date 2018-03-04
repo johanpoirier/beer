@@ -147,7 +147,12 @@ function getEncryptionData(zip, opf) {
 
 function getLcpLicense(zip) {
   return getFile(zip, 'META-INF/license.lcpl')
-    .then(jsonLicense => new License(jsonLicense));
+    .then(
+      jsonLicense => new License(jsonLicense),
+      () => new License(null))
+    .then(license => license.checkProfile())
+    .then(license => license.checkCertificate(null, null))
+    .then(license => license.checkSignature(null, null));
 }
 
 function sendEpubToSw(book) {

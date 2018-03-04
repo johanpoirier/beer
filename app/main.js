@@ -10,6 +10,7 @@ const container = document.querySelector('main');
 // - 9782824704043_jim-lindien.epub
 
 Beer.init()
+  //.then(() => Beer.withBook('/epubs/Ali-Baba-ipad-V4.0.epub'), console.error)
   .then(() => Beer.withBook('/epubs/e1.epub'), console.error)
   .then(reader => {
     const displayOptions = {
