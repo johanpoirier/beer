@@ -42,7 +42,9 @@ class License {
       const certificate = forge.pki.certificateFromAsn1(forge.asn1.fromDer(atob(this._license.signature.certificate)));
       delete licenseNoSignature.signature;
       var md = forge.md.sha256.create();
-      md.update(jsonStringify(licenseNoSignature));
+      const sorted = jsonSort(licenseNoSignature)
+      const canonical = JSON.stringify(sorted);
+      md.update(canonical);
 
       if (!certificate.publicKey.verify(md.digest().bytes(), atob(this._license.signature.value))) {
         return reject('Invalid license signature');
@@ -67,35 +69,40 @@ class License {
 License.BASIC_PROFILE = 'http://readium.org/lcp/basic-profile'
 License.PROFILE_1_0 = 'http://readium.org/lcp/profile-1.0'
 
-function jsonStringify(object) {
-  var string = ["{"];
+function jsonSort(object) {
 
-  var keys = [];
-  for (var i in object) {
-    keys.push(i);
-  }
-  keys.sort();
-
-  for (var k = 0; k < keys.length; k++) {
-    var key = keys[k];
-    string.push('"' + key + '":');
-    var value = object[key];
-    if (value instanceof Object) {
-      string.push(jsonStringify(value));
-    } else if (typeof value === 'number' || typeof value === 'boolean') {
-      string.push(value);
-    } else {
-      string.push('"' + value + '"');
+  if (object instanceof Array) {
+    var ret = Array(); 
+    for (var i = 0; i < object.length; i++)  {
+      value = object[i];
+      if (value instanceof Object) {
+        value = jsonSort(value);
+      }
+      else if (value instanceof Array) {
+        value = jsonSort(value);
+      }
+      ret.push(value)
     }
-    if (k < keys.length - 1) {
-      string.push(',');
-    }
+    return ret;
   }
-  string.push("}");
-  return string.join("");
+  else if (object instanceof Object) {
+    var ret = {};
+    var keys = Object.keys(object);
+    keys.sort();
+    for (var k = 0; k < keys.length; k++) {
+      var key = keys[k];
+      var value = object[key];
+      if (value instanceof Object) {
+        value = jsonSort(value);
+      }
+      else if (value instanceof Array) {
+        value = jsonSort(value);
+      }
+      ret[key] = value;
+    }
+    return ret;
+  }
+  return object;
 }
-
-
-
 
 export default License;
