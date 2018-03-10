@@ -145,14 +145,17 @@ function getEncryptionData(zip, opf) {
     }, () => Encryption.empty());
 }
 
-function getLcpLicense(zip) {
+function getLcpLicense(zip, passphrase) {
   return getFile(zip, 'META-INF/license.lcpl')
     .then(
-      jsonLicense => new License(jsonLicense),
+      jsonLicense => new License(jsonLicense, passphrase),
       () => new License(null))
     .then(license => license.checkProfile())
     .then(license => license.checkCertificate(null, null))
-    .then(license => license.checkSignature(null, null));
+    .then(license => license.checkSignature())
+    .then(license => license.checkUserKey())
+    .then(license => license.checkStart())
+    .then(license => license.checkEnd());
 }
 
 function sendEpubToSw(book) {

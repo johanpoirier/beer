@@ -3,10 +3,15 @@ import forge from '../lib/forge.beer';
 
 
 class License {
-  constructor(jsonStr, userkey = null) {
+  constructor(jsonStr, passphrase = null) {
     this._license = (jsonStr) ? JSON.parse(jsonStr): null;
     this._profiles = [License.BASIC_PROFILE, License.PROFILE_1_0];
-    this._userkey = userkey;
+    this._passphrase = passphrase;
+    if (this._passphrase) {
+      const md = forge.md.sha256.create();
+      md.update(passphrase);
+      this._userKey = md.digest().bytes();
+    }
   }
 
   checkProfile() {
@@ -42,9 +47,7 @@ class License {
       const certificate = forge.pki.certificateFromAsn1(forge.asn1.fromDer(atob(this._license.signature.certificate)));
       delete licenseNoSignature.signature;
       var md = forge.md.sha256.create();
-      const sorted = jsonSort(licenseNoSignature)
-      const canonical = JSON.stringify(sorted);
-      md.update(canonical);
+      md.update(JSON.stringify(jsonSort(licenseNoSignature)));
 
       if (!certificate.publicKey.verify(md.digest().bytes(), atob(this._license.signature.value))) {
         return reject('Invalid license signature');
@@ -53,16 +56,44 @@ class License {
     });
   }
 
-  checkStart(license) {
-    return true;
+  checkStart() {
+    return new Promise((resolve, reject) => {
+      if (this._license.rights && this._license.rights.start) {
+        const now = Date.now().getTime();
+        const start = new Date(this._license.rights.start).getTime();
+        if (start > now) {
+          return reject('The license is not yet valid');
+        }
+      }
+      return resolve(this);
+    });
   }
 
-  checkEnd(license) {
-    return true;
+  checkEnd() {
+    return new Promise((resolve, reject) => {
+      if (this._license.rights && this._license.rights.end) {
+        const now = Date.now().getTime();
+        const start = new Date(this._license.rights.end).getTime();
+        if (end < now) {
+          return reject('The license is more valid');
+        }
+      }
+      return resolve(this);
+    });
   }
 
-  checkUserKey(userkey) {
-    return true;
+  checkUserKey(passphrase) {
+    return new Promise((resolve, reject) => {
+      if (this._license.encryption.user_key.key_check) {
+        uncrypt('AES-CBC', atob(this._license.encryption.user_key.key_check), this._userKey).then(
+          clearText => {
+            if (this._license.id !== clearText.data) {
+              return reject('Bad passphrase or user key');
+            }
+            return resolve(this);
+          });
+      }
+    });
   }
 }
 
@@ -103,6 +134,20 @@ function jsonSort(object) {
     return ret;
   }
   return object;
+}
+
+function uncrypt(algo, data, key) {
+  return new Promise(function (resolve, reject) {
+    try {
+      const cipher = forge.cipher.createDecipher(algo, key);
+      cipher.start({ iv: data.substring(0, 16) });
+      cipher.update(forge.util.createBuffer(data.substring(16)));
+      cipher.finish();
+      resolve(cipher.output);
+    } catch(e) {
+      reject("Key is invalid: " + e.message);
+    }
+  });
 }
 
 export default License;
