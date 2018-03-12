@@ -62,7 +62,7 @@ function uncrypt(data, key) {
   contentCipher.start({ iv: iv });
   contentCipher.update(forge.util.createBuffer(todecrypt));
   contentCipher.finish();
-  return contentCipher.output;
+  return contentCipher.output.getBytes();
 }
 
 function arrayBuffer2Binary(buffer) {
