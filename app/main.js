@@ -11,7 +11,7 @@ const container = document.querySelector('main');
 
 Beer.init()
   //.then(() => Beer.withBook('/epubs/Ali-Baba-ipad-V4.0.epub'), console.error)
-  .then(() => Beer.withBook('/epubs/e1.epub'), console.error)
+  .then(() => Beer.withBook('/epubs/e2.epub', 'bob'), console.error)
   .then(reader => {
     const displayOptions = {
       mode: 'scroll'

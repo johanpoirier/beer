@@ -5,7 +5,7 @@ const x2js = new X2JS();
 
 export default class Encryption {
 
-  static create(xmlDoc, opf) {
+  static create(xmlDoc, opf, license) {
     const encryption = new Encryption();
 
     /**
@@ -31,7 +31,14 @@ export default class Encryption {
     encryptedData.EncryptedData.forEach(element => {
       const item = element.CipherData.CipherReference._URI;
       const algorithm = element.EncryptionMethod._Algorithm;
-      encryption.encryptedItems[item] = { algorithm: algorithm, key: { idpf: idpfKey, adobe: adobeKey } };
+      encryption.encryptedItems[item] = {
+        algorithm: algorithm,
+        key: {
+          idpf: idpfKey,
+          adobe: adobeKey,
+          lcp: {uk: license.userKey, ck: license.contentKey }
+        }
+      };
     });
 
     return encryption;

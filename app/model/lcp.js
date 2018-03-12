@@ -14,6 +14,14 @@ class License {
     }
   }
 
+  get userKey() {
+    return this._userKey;
+  }
+
+  get contentKey() {
+    return this._license.encryption.content_key;
+  }
+
   checkProfile() {
     return new Promise((resolve, reject) => {
       if (!this._license || this._profiles.indexOf(this._license.encryption.profile) >= 0) {
@@ -140,8 +148,8 @@ function uncrypt(algo, data, key) {
   return new Promise(function (resolve, reject) {
     try {
       const cipher = forge.cipher.createDecipher(algo, key);
-      cipher.start({ iv: data.substring(0, 16) });
-      cipher.update(forge.util.createBuffer(data.substring(16)));
+      cipher.start({ iv: data.substring(0, cipher.blockSize) });
+      cipher.update(forge.util.createBuffer(data.substring(cipher.blockSize)));
       cipher.finish();
       resolve(cipher.output);
     } catch(e) {

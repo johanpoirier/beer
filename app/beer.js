@@ -99,7 +99,7 @@ function loadBook(url, passphrase) {
     .then(blob => Promise.all([blob, JSZip.loadAsync(blob)]))
     .then(([blob, zip]) => Promise.all([blob, zip, getOpf(zip)]))
     .then(([blob, zip, opf]) => Promise.all([blob, zip, opf, getLcpLicense(zip, passphrase)]))
-    .then(([blob, zip, opf, license]) => Promise.all([blob, opf, license, getEncryptionData(zip, opf)]))
+    .then(([blob, zip, opf, license]) => Promise.all([blob, opf, license, getEncryptionData(zip, opf, license)]))
     .then(([blob, opf, license, encryptionData]) => new Book(hashCode(url), blob, opf.metadata, opf.spineItems, license, encryptionData));
 }
 
@@ -136,12 +136,12 @@ function getOpf(zip) {
     .then(([basePath, opfXml]) => Opf.create(basePath, parser.parseFromString(opfXml.trim(), 'text/xml')));
 }
 
-function getEncryptionData(zip, opf) {
+function getEncryptionData(zip, opf, license) {
   const parser = new DOMParser();
   return getFile(zip, 'META-INF/encryption.xml')
     .then(encryptionXml => {
       const xmlDoc = parser.parseFromString(encryptionXml.trim(), 'text/xml');
-      return Encryption.create(xmlDoc, opf);
+      return Encryption.create(xmlDoc, opf, license);
     }, () => Encryption.empty());
 }
 

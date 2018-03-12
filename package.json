@@ -11,7 +11,7 @@
     "copy:misc": "cp app/favicon.ico dist/",
     "copy:epubs": "mkdir -p dist/epubs && cp epubs/* dist/epubs/",
     "js": "webpack",
-    "sw": "cat node_modules/jszip/dist/jszip.js > dist/beer-service-worker.js && cat app/sw/file-decryptor.js >> dist/beer-service-worker.js && cat app/sw/beer-service-worker.js >> dist/beer-service-worker.js",
+    "sw": "cat node_modules/jszip/dist/jszip.js app/sw/file-decryptor.js app/lib/forge.beer.js app/sw/beer-service-worker.js > dist/beer-service-worker.js",
     "sw:package": "cat node_modules/jszip/dist/jszip.min.js > dist/beer-service-worker.js && uglifyjs --compress --mangle -- app/sw/file-decryptor.js >> dist/beer-service-worker.js && uglifyjs --compress --mangle -- app/sw/beer-service-worker.js >> dist/beer-service-worker.js",
     "build": "npm run copy && npm run js && npm run sw",
     "watch": "watch -d -u 'npm run build' app/*",

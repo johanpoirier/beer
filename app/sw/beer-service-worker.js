@@ -174,7 +174,7 @@ function addToCache(cacheKey, options, request, response) {
   if (response.ok && request.url.match(options.cachePattern)) {
     const copy = response.clone();
     caches.open(cacheKey).then(cache => {
-      cache.put(request, copy).catch(console.warn);
+//      cache.put(request, copy).catch(console.warn);
     });
   }
   return response;
