@@ -31,17 +31,38 @@ export default class Encryption {
     encryptedData.EncryptedData.forEach(element => {
       const item = element.CipherData.CipherReference._URI;
       const algorithm = element.EncryptionMethod._Algorithm;
+      const compressionMethod = (element.EncryptionProperties &&
+        element.EncryptionProperties.EncryptionProperty &&
+        element.EncryptionProperties.EncryptionProperty.Compression) ?
+        element.EncryptionProperties.EncryptionProperty.Compression._Method:0;
+      const orginalSize = (element.EncryptionProperties &&
+        element.EncryptionProperties.EncryptionProperty &&
+        element.EncryptionProperties.EncryptionProperty.Compression) ?
+        element.EncryptionProperties.EncryptionProperty.Compression._OriginalLength:0;
+
       encryption.encryptedItems[item] = {
         algorithm: algorithm,
-        key: {
+        info: {
           idpf: idpfKey,
           adobe: adobeKey,
-          lcp: {uk: license.userKey, ck: license.contentKey }
+          lcp: Encryption.isLcp(element) ? {
+            content_algo: element.EncryptionMethod._Algorithm,
+            user_key: license.userKey,
+            content_key: license.contentKey,
+            compression: compressionMethod,
+            length: orginalSize,
+          }: null
         }
       };
     });
 
     return encryption;
+  }
+
+  static isLcp(element) {
+    return element.KeyInfo && element.KeyInfo.RetrievalMethod &&
+      element.KeyInfo.RetrievalMethod._URI === 'license.lcpl#/encryption/content_key' &&
+      element.EncryptionMethod._Algorithm === 'http://www.w3.org/2001/04/xmlenc#aes256-cbc';
   }
 
   static empty() {

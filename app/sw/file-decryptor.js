@@ -9,7 +9,7 @@ class FileDecryptor {
     if (filePath in epub.encryptedItems) {
       const encryptedItem = epub.encryptedItems[filePath];
       console.debug(`[BEER-SW] decrypting ${filePath} from the epub file with ${encryptedItem.algorithm}`);
-      return decryptionMethods[encryptedItem.algorithm](data, encryptedItem.key);
+      return decryptionMethods[encryptedItem.algorithm](data, encryptedItem.info);
     }
     return data;
   }
@@ -24,52 +24,58 @@ function unObfuscteXor(data, prefix, key) {
   return array.buffer;
 }
 
-function unObfusqIdpf(data, key) {
+function unObfusqIdpf(data, info) {
   const prefixLength = 1040;
-  return unObfuscteXor(data, prefixLength, key.idpf)
+  return unObfuscteXor(data, prefixLength, info.idpf)
 }
 
-function unObfusqAdobe(data, key) {
+function unObfusqAdobe(data, info) {
   const prefixLength = 1024;
-  return unObfuscteXor(data, prefixLength, key.adobe)
+  return unObfuscteXor(data, prefixLength, info.adobe)
 }
 
-function lcpDecrypt(data, key) {
-  return uncrypt(data, key.lcp);
+function lcpDecrypt(data, info) {
+  const lcp = info.lcp;
+  return uncrypt(atob(lcp.content_key.encrypted_value), lcp.user_key, lcp.content_key.algorithm).then(
+    contentKey => uncrypt(array2bin(data), contentKey, lcp.content_algo)).then(
+    content => {return unzip(content, lcp.compression, lcp.length)});
 }
 
-function uncrypt(data, key) {
-  /* get content key from encrypted value in license and according to algorithm*/
-  const keyCipher = forge.cipher.createDecipher('AES-CBC', key.uk);
-  if (key.ck.algorithm !== 'http://www.w3.org/2001/04/xmlenc#aes256-cbc') {
-    /* return data for unsupported algorithms */
-    return data;
+function uncrypt(data, key, algo) {
+  return new Promise((resolve, reject) => {
+    if (algo !== 'http://www.w3.org/2001/04/xmlenc#aes256-cbc') {
+      return reject('Unknown algorithm');
+    }
+    const cipher = forge.cipher.createDecipher('AES-CBC', key);
+    cipher.start({iv: data.substring(0, cipher.blockSize)});
+    cipher.update(forge.util.createBuffer(data.substring(cipher.blockSize)));
+    cipher.finish();
+    return resolve(cipher.output.getBytes());
+  });
+}
+
+function unzip(data, compression, length) {
+  if (compression === "0") {
+    return bin2array(data);
   }
-  keyCipher.start({ iv: atob(key.ck.encrypted_value).substring(0, keyCipher.blockSize) });
-  keyCipher.update(forge.util.createBuffer(atob(key.ck.encrypted_value).substring(keyCipher.blockSize)));
-  keyCipher.finish();
-  const contentKey = keyCipher.output.getBytes();
-
-  /**
-   * extract content from content key for the moment only 
-   * http://www.w3.org/2001/04/xmlenc#aes256-cbc is supported
-   */
-  const bin = arrayBuffer2Binary(data);
-  contentCipher = forge.cipher.createDecipher('AES-CBC', contentKey);
-
-  const iv = bin.substring(0, contentCipher.blockSize);
-  const todecrypt = bin.substring(contentCipher.blockSize);
-  contentCipher.start({ iv: iv });
-  contentCipher.update(forge.util.createBuffer(todecrypt));
-  contentCipher.finish();
-  return contentCipher.output.getBytes();
+  else if (compression === "8") {
+    return bin2array(data);
+  }
 }
 
-function arrayBuffer2Binary(buffer) {
+function array2bin(buffer) {
   var binary = '';
   const bytes = new Uint8Array(buffer);
   for (var i = 0; i < bytes.byteLength; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
   return binary;
+}
+
+function bin2array(binary) {
+  var uint8Array = new Uint8Array(binary.length);
+  for (var i = 0; i < uint8Array.length; i++) {
+    uint8Array[i] = binary.charCodeAt(i);
+  }
+  return uint8Array;
 }
