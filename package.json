@@ -2,7 +2,7 @@
   "name": "BEER",
   "version": "0.1.1",
   "description": "BEst Epub Reader",
-  "main": "app/beer.js",
+  "main": "dist/beer.js",
   "scripts": {
     "start": "npm run dev",
     "clean": "rm -rf dist/ && mkdir dist",
@@ -20,7 +20,7 @@
     "predev": "npm run clean",
     "dev": "npm run build && parallelshell 'webpack --watch' 'npm run watch:html' 'npm run watch:sw'",
     "prepackage": "npm run clean",
-    "package": "npm run copy && npm run js -- -p && npm run sw:package"
+    "package": "npm run js -- -p && npm run sw:package"
   },
   "repository": "git+https://github.com/johanpoirier/beer.git",
   "keywords": [],
@@ -31,13 +31,13 @@
   },
   "homepage": "https://github.com/johanpoirier/beer#readme",
   "devDependencies": {
-    "@babel/core": "^7.0.0-beta.36",
-    "@babel/preset-env": "^7.0.0-beta.36",
-    "babel-loader": "^8.0.0-beta.0",
+    "@babel/core": "^7.0.0-beta.40",
+    "@babel/preset-env": "^7.0.0-beta.40",
+    "babel-loader": "^8.0.0-beta.2",
     "onchange": "^3.3.0",
     "parallelshell": "^3.0.2",
-    "uglify-es": "^3.3.5",
-    "webpack": "^3.10.0"
+    "uglify-es": "^3.3.10",
+    "webpack": "^3.11.0"
   },
   "dependencies": {
     "jszip": "^3.1.5"
