@@ -81,9 +81,9 @@ class License {
     return new Promise((resolve, reject) => {
       if (this._license.rights && this._license.rights.end) {
         const now = Date.now().getTime();
-        const start = new Date(this._license.rights.end).getTime();
+        const end = new Date(this._license.rights.end).getTime();
         if (end < now) {
-          return reject('The license is more valid');
+          return reject('The license is no more valid');
         }
       }
       return resolve(this);

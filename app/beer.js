@@ -45,6 +45,7 @@ export default class Beer {
    * Create new BEER reader that will load a book from the url
    *
    * @param url The URL of the epub
+   * @param passphrase
    * @returns Promise that resolves with the BEER reader
    */
   static withBook(url, passphrase = null) {
@@ -147,9 +148,7 @@ function getEncryptionData(zip, opf, license) {
 
 function getLcpLicense(zip, passphrase) {
   return getFile(zip, 'META-INF/license.lcpl')
-    .then(
-      jsonLicense => new License(jsonLicense, passphrase),
-      () => new License(null))
+    .then(jsonLicense => new License(jsonLicense, passphrase), () => new License(null))
     .then(license => license.checkProfile())
     .then(license => license.checkCertificate(null, null))
     .then(license => license.checkSignature())

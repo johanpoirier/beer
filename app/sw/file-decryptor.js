@@ -1,7 +1,7 @@
 const decryptionMethods = {
   'http://www.idpf.org/2008/embedding': unObfusqIdpf,
   'http://ns.adobe.com/pdf/enc#RC': unObfusqAdobe,
-  'http://www.w3.org/2001/04/xmlenc#aes256-cbc':lcpDecrypt
+  'http://www.w3.org/2001/04/xmlenc#aes256-cbc': lcpDecrypt
 };
 
 class FileDecryptor {
@@ -36,45 +36,45 @@ function unObfusqAdobe(data, info) {
 
 function lcpDecrypt(data, info) {
   const lcp = info.lcp;
-  return uncrypt(atob(lcp.content_key.encrypted_value), lcp.user_key, lcp.content_key.algorithm).then(
-    contentKey => uncrypt(array2bin(data), contentKey, lcp.content_algo)).then(
-    content => {return unzip(content, lcp.compression, lcp.length)});
+  return decipher(atob(lcp.content_key.encrypted_value), lcp.user_key, lcp.content_key.algorithm)
+    .then(contentKey => {
+      return decipher(array2bin(data), contentKey, lcp.content_algo);
+    })
+    .then(content => unzip(content, lcp.compression, lcp.length));
 }
 
-function uncrypt(data, key, algo) {
+function decipher(data, key, algo) {
   return new Promise((resolve, reject) => {
     if (algo !== 'http://www.w3.org/2001/04/xmlenc#aes256-cbc') {
       return reject('Unknown algorithm');
     }
     const cipher = forge.cipher.createDecipher('AES-CBC', key);
-    cipher.start({iv: data.substring(0, cipher.blockSize)});
+    cipher.start({ iv: data.substring(0, cipher.blockSize) });
     cipher.update(forge.util.createBuffer(data.substring(cipher.blockSize)));
     cipher.finish();
     return resolve(cipher.output.getBytes());
   });
 }
 
-function unzip(data, compression, length) {
-  if (compression === "0") {
-    return bin2array(data);
+function unzip(data, compression) {
+  if (compression === '8') {
+    return pako.inflateRaw(arrayData, { to: 'string' });
   }
-  else if (compression === "8") {
-    return bin2array(data);
-  }
+  return arrayData;
 }
 
 function array2bin(buffer) {
-  var binary = '';
+  let binary = '';
   const bytes = new Uint8Array(buffer);
-  for (var i = 0; i < bytes.byteLength; i++) {
+  for (let i = 0; i < bytes.byteLength; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
   return binary;
 }
 
 function bin2array(binary) {
-  var uint8Array = new Uint8Array(binary.length);
-  for (var i = 0; i < uint8Array.length; i++) {
+  const uint8Array = new Uint8Array(binary.length);
+  for (let i = 0; i < uint8Array.length; i++) {
     uint8Array[i] = binary.charCodeAt(i);
   }
   return uint8Array;

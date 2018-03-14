@@ -3,9 +3,6 @@ const EpubCFI = function (cfiStr) {
 };
 
 const ELEMENT_NODE = 1;
-const TEXT_NODE = 3;
-const COMMENT_NODE = 8;
-const DOCUMENT_NODE = 9;
 
 EpubCFI.prototype.generateChapterComponent = function (_spineNodeIndex, _pos, id) {
   const pos = parseInt(_pos);
