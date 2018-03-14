@@ -1,4 +1,4 @@
-import forge from '../lib/forge.beer';
+import forge from '../lib/forge.lcp';
 
 
 

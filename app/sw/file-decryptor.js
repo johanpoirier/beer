@@ -55,12 +55,14 @@ function uncrypt(data, key, algo) {
 }
 
 function unzip(data, compression, length) {
-  if (compression === "0") {
-    return bin2array(data);
-  }
-  else if (compression === "8") {
-    return bin2array(data);
-  }
+  return new Promise((resolve, reject) => {
+    if (compression === "0") {
+      resolve(bin2array(data));
+    }
+    else if (compression === "8") {
+      return resolve(bin2array(pako.inflate(data)));
+    }
+  });
 }
 
 function array2bin(buffer) {

@@ -1,5 +1,5 @@
 import serviceWorkerInstall from './sw/install';
-import forge from './lib/forge.beer';
+import forge from './lib/forge.sha1';
 import JSZip from '../node_modules/jszip/dist/jszip.js';
 import Opf from './model/opf';
 import Book from './model/book';
