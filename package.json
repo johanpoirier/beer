@@ -11,7 +11,7 @@
     "copy:misc": "cp app/favicon.ico dist/",
     "copy:epubs": "mkdir -p dist/epubs && cp epubs/* dist/epubs/",
     "js": "webpack",
-    "sw": "cat node_modules/pako/dist/pako_inflate.js app/lib/jszip.js app/sw/file-decryptor.js app/lib/forge.beer.js app/sw/beer-service-worker.js > dist/beer-service-worker.js",
+    "sw": "cat node_modules/pako/dist/pako_inflate.js app/lib/jszip.js app/sw/file-decryptor.js app/lib/forge.aes.js app/sw/beer-service-worker.js > dist/beer-service-worker.js",
     "sw:package": "cat node_modules/pako/dist/pako_deflate.min.js > dist/beer-service-worker.js && uglifyjs --compress --mangle -- app/lib/jszip.js >> dist/beer-service-worker.js && uglifyjs --compress --mangle -- app/sw/file-decryptor.js >> dist/beer-service-worker.js && uglifyjs --compress --mangle -- app/sw/beer-service-worker.js >> dist/beer-service-worker.js",
     "build": "npm run copy && npm run js && npm run sw",
     "watch": "watch -d -u 'npm run build' app/*",
@@ -40,7 +40,6 @@
     "webpack": "^3.11.0"
   },
   "dependencies": {
-    "jszip": "^3.1.5",
     "pako": "^1.0.6"
   },
   "private": true

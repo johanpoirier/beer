@@ -57,6 +57,7 @@ function decipher(data, key, algo) {
 }
 
 function unzip(data, compression) {
+  const arrayData = bin2array(data);
   if (compression === '8') {
     return pako.inflateRaw(arrayData, { to: 'string' });
   }

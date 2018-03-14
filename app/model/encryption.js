@@ -1,5 +1,5 @@
 import X2JS from '../xml2json';
-import forge from '../lib/forge.beer';
+import forge from '../lib/forge.lcp';
 
 const x2js = new X2JS();
 
