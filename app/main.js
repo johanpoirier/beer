@@ -9,14 +9,14 @@ const container = document.querySelector('main');
 // - timote.epub
 // - 9782824704043_jim-lindien.epub
 
+// 9783423441117.epub
 Beer.init()
-  .then(() => Beer.withBook('/epubs/l-odyssee.epub'), console.error)
+  .then(() => Beer.withBook('/epubs/moby-dick.epub'), console.error)
   .then(reader => {
     const displayOptions = {
       mode: 'scroll'
     };
     const display = reader.displayBook(container, displayOptions);
-    //const display = reader.displayBook(container, { cfi: 'epubcfi(/6/8[id004]!/4/24/1:0)' }); // display with CFI provided
 
     // listen to events in main page frame
     listenToKeyboard(document, display);
@@ -44,6 +44,18 @@ function listenToKeyboard(element, display) {
         break;
       case 'ArrowDown':
         display.zoomOut();
+        break;
+      case '1':
+        display.oneColumn();
+        break;
+      case '2':
+        display.twoColumns();
+        break;
+      case 'M':
+        display.marginUp();
+        break;
+      case 'm':
+        display.marginDown();
         break;
     }
   }, true);
