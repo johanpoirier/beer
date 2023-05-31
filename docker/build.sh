@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t beer .
+docker build --progress=plain -t beer .
