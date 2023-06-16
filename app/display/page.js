@@ -3,9 +3,7 @@ import EventedMixin from '../mixin/evented';
 import EpubCfi from '../lib/epubcfi';
 import {debounce} from '../tools';
 
-const COLUMN_GAP = 20;
 const COLUMN_DEFAULT_COUNT = 2;
-
 const epubCfi = new EpubCfi();
 
 export default class Page extends EventedMixin(Base) {
@@ -15,6 +13,8 @@ export default class Page extends EventedMixin(Base) {
 
     this._frame = createFrame();
     this._columnCount = COLUMN_DEFAULT_COUNT;
+    this._margin = Base.DEFAULT_MARGIN;
+    this._columnGap = this._columnCount == 2 ? 2*Base.DEFAULT_MARGIN:0;
     this._element.classList.add('page');
     this._element.appendChild(this._frame);
 
@@ -46,13 +46,40 @@ export default class Page extends EventedMixin(Base) {
     zoom.call(this, this._displayRatio);
   }
 
+  oneColumn() {
+    this._columnCount = 1;
+    this._columnGap = 0;
+    fitContent.call(this, this._frame, this._columnCount);
+  }
+
+  twoColumns() {
+    this._columnCount = 2;
+    this._columnGap = 2*this._margin;
+    fitContent.call(this, this._frame, this._columnCount);
+  }
+
+  marginUp() {
+    if (this._margin < this._frame.clientWidth/8) {
+      this._margin += Base.MARGIN_STEP;
+      this._columnGap = this._columnCount == 2 ? 2*this._margin:0;
+      fitContent.call(this, this._frame, this._columnCount);
+    }
+  }
+
+  marginDown() {
+    if (this._margin > Base.MARGIN_STEP) {
+      this._margin -= Base.MARGIN_STEP;
+      this._columnGap = this._columnCount == 2 ? 2*this._margin:0;
+      fitContent.call(this, this._frame, this._columnCount);
+    }
+  }
 
   previous() {
     if (this._frame.contentWindow.scrollX <= 0) {
       previousSpine.call(this, 100);
       return;
     }
-    this._frame.contentWindow.scrollBy(-1 * (this._contentHtml.clientWidth + COLUMN_GAP), 0);
+    this._frame.contentWindow.scrollBy(-1 * (this._contentHtml.clientWidth + (this._columnGap)), 0);
     this._position = computePosition(this._currentSpineItemCfi, this._frame);
   }
 
@@ -61,7 +88,7 @@ export default class Page extends EventedMixin(Base) {
       nextSpine.call(this);
       return;
     }
-    this._frame.contentWindow.scrollBy(this._contentHtml.clientWidth + COLUMN_GAP, 0);
+    this._frame.contentWindow.scrollBy(this._contentHtml.clientWidth + (this._columnGap), 0);
     this._position = computePosition(this._currentSpineItemCfi, this._frame);
   }
 }
@@ -163,16 +190,23 @@ function loadFrame(href) {
  * @param columnCount
  */
 function fitContent(frame, columnCount) {
+  // Frame style
+  frame.style['padding-left'] = `${(this._margin)}px`;
+  frame.style['padding-right'] = `${(this._margin)}px`;
+  frame.style['padding-top'] = `${Base.DEFAULT_MARGIN}px`;
+  frame.style['padding-bottom'] = `${Base.DEFAULT_MARGIN}px`;
+
+  // Content inner style
   const html = frame.contentDocument.querySelector('html');
   html.style['column-count'] = columnCount;
-  html.style['column-gap'] = `${COLUMN_GAP}px`;
+  html.style['column-gap'] = `${this._columnGap}px`;
   html.style['break-inside'] = 'avoid';
-  html.style['height'] = `${frame.clientHeight}px`;
+  html.style['height'] = `${frame.clientHeight-(Base.DEFAULT_MARGIN*2)}px`; // The top/bottom margins are always set to default
   html.style['overflow'] = 'hidden';
 
   // position is not quite good yet
   const rawScrollLeft = html.scrollWidth * this._position / 100;
-  frame.contentWindow.scrollTo(rawScrollLeft - (rawScrollLeft % (html.clientWidth + (columnCount - 1) * COLUMN_GAP)), 0);
+  frame.contentWindow.scrollTo(rawScrollLeft - (rawScrollLeft % (html.clientWidth + (columnCount - 1) * (this._margin*2))), 0);
 }
 
 /**

@@ -7,8 +7,10 @@ export default class Scroll extends EventedMixin(Base) {
     super(...arguments);
 
     this._element.classList.add('scroll');
+    this._element.style['padding-top'] = `${Base.DEFAULT_MARGIN}px`;
+    this._element.style['padding-bottom'] = `${Base.DEFAULT_MARGIN}px`;
     this._element.addEventListener('scroll', onScroll.bind(this));
-
+    this._margin = Base.DEFAULT_MARGIN;
     this._frames = [];
   }
 
@@ -58,6 +60,23 @@ export default class Scroll extends EventedMixin(Base) {
     this._displayRatio /= Base.FONT_SCALE_MULTIPLIER;
     zoom.call(this, this._displayRatio);
     this.redraw();
+  }
+
+  /**
+   * Increase left/right margin
+   */
+  marginUp() {
+    if (this._margin < this._element.clientWidth/8) {
+      this._margin += Base.MARGIN_STEP;
+      fitContent.call(this, this._element);
+    }
+  }
+
+  marginDown() {
+    if (this._margin > Base.MARGIN_STEP) {
+      this._margin -= Base.MARGIN_STEP;
+      fitContent.call(this, this._element);
+    }
   }
 
   /**
@@ -125,6 +144,10 @@ function loadFrame(frame, href) {
   });
 }
 
+/**
+ * @param frame The frame where to load the spine
+ * @param multiplier The font multiplier
+ */
 function zoomFrame(frame, multiplier) {
   frame.contentWindow.document.body.style['font-size'] = `${100 * multiplier}%`;
 }
@@ -135,9 +158,20 @@ function onScroll() {
   }
 }
 
+/**
+ * @param multiplier The font multiplier
+ */
 function zoom(multiplier) {
   if (multiplier === 1) {
     return;
   }
   this._frames.forEach(frame => zoomFrame(frame, multiplier));
+}
+
+/**
+ * @param frame
+ */
+function fitContent(element) {
+  element.style['padding-left'] = `${this._margin}px`
+  element.style['padding-right'] = `${this._margin}px`
 }

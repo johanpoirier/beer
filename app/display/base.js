@@ -55,5 +55,7 @@ class Base {
 
 Base.ZOOM_SCALE_MULTIPLIER = 1.5;
 Base.FONT_SCALE_MULTIPLIER = 1.1;
+Base.DEFAULT_MARGIN = 30;
+Base.MARGIN_STEP = 10;
 
 export default Base;
