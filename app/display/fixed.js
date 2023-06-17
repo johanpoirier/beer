@@ -4,7 +4,7 @@ import { debounce } from '../tools';
 
 export default class Fixed extends EventedMixin(Base) {
 
-  constructor(element) {
+  constructor(element, displayOptions) {
     super(...arguments);
 
     this._element.classList.add('fixed');

@@ -7,6 +7,7 @@ import Encryption from './model/encryption';
 import Scroll from './display/scroll';
 import Page from './display/page';
 import Fixed from './display/fixed';
+import Base from './display/base';
 
 export default class Beer {
 
@@ -71,8 +72,8 @@ export default class Beer {
     if (!htmlElement) {
       throw new Error('container HTML element not found');
     }
-
-    this._displayOptions = displayOptions || getDefaultDisplayOptions();
+    const defaultOptions = getDefaultDisplayOptions();
+    this._displayOptions = Object.assign(defaultOptions, displayOptions)
 
     if (this._book.isFixedLayout) {
       this._displayOptions.mode = 'fixed';
@@ -80,12 +81,16 @@ export default class Beer {
 
     let readerDisplay;
     if (this._displayOptions.mode === 'scroll') {
-      readerDisplay = new Scroll(htmlElement);
+      readerDisplay = new Scroll(htmlElement, this._displayOptions);
     } else if (this._displayOptions.mode === 'fixed') {
-      readerDisplay = new Fixed(htmlElement);
+      readerDisplay = new Fixed(htmlElement, this._displayOptions);
     } else {
-      readerDisplay = new Page(htmlElement);
+      readerDisplay = new Page(htmlElement, this._displayOptions);
     }
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => e.matches && readerDisplay._displayOptions.theme == Base.AUTO_THEME && readerDisplay.autoTheme());
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => e.matches && readerDisplay._displayOptions.theme == Base.AUTO_THEME && readerDisplay.autoTheme());
+    
     readerDisplay.display(this._book, this._displayOptions.cfi || null);
 
     return readerDisplay;
@@ -157,7 +162,11 @@ function sendEpubToSw(book) {
 
 function getDefaultDisplayOptions() {
   return {
-    mode: 'page'
+    mode: 'page',
+    columnCount: Base.DEFAULT_COLUMN_COUNT,
+    margin: Base.DEFAULT_MARGIN,
+    theme: Base.AUTO_THEME,
+    ratio: Base.DEFAULT_RATIO
   };
 }
 

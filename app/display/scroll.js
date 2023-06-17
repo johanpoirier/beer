@@ -3,15 +3,15 @@ import EventedMixin from '../mixin/evented';
 
 export default class Scroll extends EventedMixin(Base) {
 
-  constructor(element) {
-    super(...arguments);
-
+  constructor(element, displayOptions) {
+    super(...arguments, displayOptions);
+  
     this._element.classList.add('scroll');
     this._element.style['padding-top'] = `${Base.DEFAULT_MARGIN}px`;
     this._element.style['padding-bottom'] = `${Base.DEFAULT_MARGIN}px`;
     this._element.addEventListener('scroll', onScroll.bind(this));
-    this._margin = Base.DEFAULT_MARGIN;
     this._frames = [];
+    this.redraw();
   }
 
   display(book) {
@@ -66,23 +66,46 @@ export default class Scroll extends EventedMixin(Base) {
    * Increase left/right margin
    */
   marginUp() {
-    if (this._margin < this._element.clientWidth/8) {
-      this._margin += Base.MARGIN_STEP;
-      fitContent.call(this, this._element);
+    if (this._displayOptions.margin < this._element.clientWidth/8) {
+      this._displayOptions.margin += Base.MARGIN_STEP;
+      this.redraw();
     }
   }
 
   marginDown() {
-    if (this._margin > Base.MARGIN_STEP) {
-      this._margin -= Base.MARGIN_STEP;
-      fitContent.call(this, this._element);
+    if (this._displayOptions.margin > Base.MARGIN_STEP) {
+      this._displayOptions.margin -= Base.MARGIN_STEP;
+      this.redraw();
     }
+  }
+
+  ligthTheme() {
+    this._displayOptions.theme = Base.LIGHT_THEME;
+    this.redraw();
+  }
+
+  nightTheme() {
+    this._displayOptions.theme = Base.NIGHT_THEME;
+    this.redraw();
+  }
+
+  autoTheme() {
+    this._displayOptions.theme = Base.AUTO_THEME;
+    this.redraw();
   }
 
   /**
    *
    */
   redraw() {
+    const theme = this.theme();
+    
+    // Parent element background color
+    this._element.style['padding-left'] = `${this._displayOptions.margin}px`
+    this._element.style['padding-right'] = `${this._displayOptions.margin}px`
+    this._element.style['background-color'] = Base.COLOR_SET[theme]['background-color'];
+
+
     this._frames.forEach(frame => {
       const document = frame.contentWindow.document;
       const html = document.querySelector('html');
@@ -91,6 +114,7 @@ export default class Scroll extends EventedMixin(Base) {
 
       html.style['overflow-x'] = 'hidden';
       html.style['transform-origin'] = '0 0 0';
+      document.body.style['color'] = Base.COLOR_SET[theme]['color']
     });
   }
 }
@@ -114,12 +138,12 @@ function displayNextSpine() {
 
   return loadFrame.call(this, frame, spineItem.href).then(frame => {
     zoomFrame.call(this, frame, this._displayRatio);
-    frame.style['opacity'] = '1';
+
     frame.style['height'] = `${frame.contentWindow.document.body.clientHeight + 50}px`;
     frame.contentWindow.document.body.style['overflow'] = 'hidden';
-
+    frame.contentWindow.document.body.style['color'] = Base.COLOR_SET[this.theme()]['color']
+    frame.style['opacity'] = '1';
     this._frames.push(frame);
-
   });
 }
 
@@ -166,12 +190,4 @@ function zoom(multiplier) {
     return;
   }
   this._frames.forEach(frame => zoomFrame(frame, multiplier));
-}
-
-/**
- * @param frame
- */
-function fitContent(element) {
-  element.style['padding-left'] = `${this._margin}px`
-  element.style['padding-right'] = `${this._margin}px`
 }

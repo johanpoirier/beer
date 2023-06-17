@@ -14,7 +14,11 @@ Beer.init()
   .then(() => Beer.withBook('/epubs/moby-dick.epub'), console.error)
   .then(reader => {
     const displayOptions = {
-      mode: 'scroll'
+      mode: 'page',
+      theme: 'auto',
+      columnCount: 1,
+      margin: 100,
+      ratio: 1.2
     };
     const display = reader.displayBook(container, displayOptions);
 
@@ -57,6 +61,12 @@ function listenToKeyboard(element, display) {
       case 'm':
         display.marginDown();
         break;
+      case 't':
+        display.toggleTheme();
+        break;
+      case 'a':
+          display.autoTheme();
+          break;
     }
   }, true);
 }
