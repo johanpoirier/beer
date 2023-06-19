@@ -3,6 +3,7 @@ const decryptionMethods = {
   'http://ns.adobe.com/pdf/enc#RC': unObfusqAdobe
 };
 
+// eslint-disable-next-line no-unused-vars
 class FileDecryptor {
   static decrypt(epub, filePath, data) {
     if (filePath in epub.encryptedItems) {
@@ -25,10 +26,10 @@ function unObfuscteXor(data, prefix, key) {
 
 function unObfusqIdpf(data, key) {
   const prefixLength = 1040;
-  return unObfuscteXor(data, prefixLength, key.idpf)
+  return unObfuscteXor(data, prefixLength, key.idpf);
 }
 
 function unObfusqAdobe(data, key) {
   const prefixLength = 1024;
-  return unObfuscteXor(data, prefixLength, key.adobe)
+  return unObfuscteXor(data, prefixLength, key.adobe);
 }

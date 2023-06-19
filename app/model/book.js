@@ -75,17 +75,17 @@ Book.RENDITION_SPREAD_AUTO = 'auto';
 export default Book;
 
 function extractFormat(metadata) {
-  const metaLayout = metadata['meta'].find(data => data['_property'] === 'rendition:layout');
+  const metaLayout = metadata.meta.find(data => data._property === 'rendition:layout');
   if (metaLayout) {
-    return metaLayout['__text'];
+    return metaLayout.__text;
   }
   return Book.FORMAT_REFLOWABLE;
 }
 
 function extractRenditionSpread(metadata) {
-  const metaRenditionSpread = metadata['meta'].find(data => data['_property'] === 'rendition:spread');
+  const metaRenditionSpread = metadata.meta.find(data => data._property === 'rendition:spread');
   if (metaRenditionSpread) {
-    return metaRenditionSpread['__text'];
+    return metaRenditionSpread.__text;
   }
   return Book.RENDITION_SPREAD_AUTO;
 }

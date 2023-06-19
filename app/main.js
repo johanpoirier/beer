@@ -29,7 +29,6 @@ Beer.init()
     display.on('load', displayDocument => listenToKeyboard(displayDocument, display));
   });
 
-
 function listenToKeyboard(element, display) {
   element.addEventListener('keydown', event => {
     if (event.defaultPrevented) {
@@ -37,36 +36,36 @@ function listenToKeyboard(element, display) {
     }
 
     switch (event.key) {
-      case 'ArrowLeft':
-        display.previous();
-        break;
-      case 'ArrowRight':
-        display.next();
-        break;
-      case 'ArrowUp':
-        display.zoomIn();
-        break;
-      case 'ArrowDown':
-        display.zoomOut();
-        break;
-      case '1':
-        display.oneColumn();
-        break;
-      case '2':
-        display.twoColumns();
-        break;
-      case 'M':
-        display.marginUp();
-        break;
-      case 'm':
-        display.marginDown();
-        break;
-      case 't':
-        display.toggleTheme();
-        break;
-      case 'a':
-          display.autoTheme();
-          break;
+    case 'ArrowLeft':
+      display.previous();
+      break;
+    case 'ArrowRight':
+      display.next();
+      break;
+    case 'ArrowUp':
+      display.zoomIn();
+      break;
+    case 'ArrowDown':
+      display.zoomOut();
+      break;
+    case '1':
+      display.oneColumn();
+      break;
+    case '2':
+      display.twoColumns();
+      break;
+    case 'M':
+      display.marginUp();
+      break;
+    case 'm':
+      display.marginDown();
+      break;
+    case 't':
+      display.toggleTheme();
+      break;
+    case 'a':
+      display.autoTheme();
+      break;
     }
   }, true);
 }

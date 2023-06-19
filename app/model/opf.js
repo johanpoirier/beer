@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 import SpineItem from './spine-item';
 import X2JS from '../lib/xml2json';
@@ -8,7 +8,6 @@ const x2js = new X2JS();
 const epubCfi = new EpubCfi();
 
 export default class Opf {
-
   static create(basePath, xmlDoc) {
     const opf = new Opf();
 
@@ -19,18 +18,17 @@ export default class Opf {
 
     const spineNodeIndex = epubCfi.indexOfElement(xmlDoc.querySelector('spine'));
 
-    const spineItemsRefs = x2js.xml2json(xmlDoc.querySelector('spine')).itemref.map(item => item['_idref']);
+    const spineItemsRefs = x2js.xml2json(xmlDoc.querySelector('spine')).itemref.map(item => item._idref);
     opf.spineItems = x2js.xml2json(xmlDoc.querySelector('manifest')).item
-      .filter(item => spineItemsRefs.indexOf(item['_id']) >= 0)
+      .filter(item => spineItemsRefs.indexOf(item._id) >= 0)
       .map(spineItemXml => {
         const spineItem = SpineItem.fromXml(spineItemXml);
         spineItem.cfi = epubCfi.generateChapterComponent(spineNodeIndex, spineItemsRefs.indexOf(spineItem.id), spineItem.id);
         return spineItem;
       });
 
-    opf.spineItems.forEach(spineItem => spineItem.href = `${basePath}${spineItem.href}`);
+    opf.spineItems.forEach(spineItem => { spineItem.href = `${basePath}${spineItem.href}`; return true; });
 
     return opf;
   }
-
 }

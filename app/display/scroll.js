@@ -2,10 +2,9 @@ import Base from './base';
 import EventedMixin from '../mixin/evented';
 
 export default class Scroll extends EventedMixin(Base) {
-
   constructor(element, displayOptions) {
     super(...arguments, displayOptions);
-  
+
     this._element.classList.add('scroll');
     this._element.style['padding-top'] = `${Base.DEFAULT_MARGIN}px`;
     this._element.style['padding-bottom'] = `${Base.DEFAULT_MARGIN}px`;
@@ -66,7 +65,7 @@ export default class Scroll extends EventedMixin(Base) {
    * Increase left/right margin
    */
   marginUp() {
-    if (this._displayOptions.margin < this._element.clientWidth/8) {
+    if (this._displayOptions.margin < this._element.clientWidth / 8) {
       this._displayOptions.margin += Base.MARGIN_STEP;
       this.redraw();
     }
@@ -99,22 +98,21 @@ export default class Scroll extends EventedMixin(Base) {
    */
   redraw() {
     const theme = this.theme();
-    
-    // Parent element background color
-    this._element.style['padding-left'] = `${this._displayOptions.margin}px`
-    this._element.style['padding-right'] = `${this._displayOptions.margin}px`
-    this._element.style['background-color'] = Base.COLOR_SET[theme]['background-color'];
 
+    // Parent element background color
+    this._element.style['padding-left'] = `${this._displayOptions.margin}px`;
+    this._element.style['padding-right'] = `${this._displayOptions.margin}px`;
+    this._element.style['background-color'] = Base.COLOR_SET[theme]['background-color'];
 
     this._frames.forEach(frame => {
       const document = frame.contentWindow.document;
       const html = document.querySelector('html');
 
-      frame.style['height'] = `${document.body.clientHeight + 100}px`;
+      frame.style.height = `${document.body.clientHeight + 100}px`;
 
       html.style['overflow-x'] = 'hidden';
       html.style['transform-origin'] = '0 0 0';
-      document.body.style['color'] = Base.COLOR_SET[theme]['color']
+      document.body.style.color = Base.COLOR_SET[theme].color;
     });
   }
 }
@@ -139,10 +137,10 @@ function displayNextSpine() {
   return loadFrame.call(this, frame, spineItem.href).then(frame => {
     zoomFrame.call(this, frame, this._displayRatio);
 
-    frame.style['height'] = `${frame.contentWindow.document.body.clientHeight + 50}px`;
-    frame.contentWindow.document.body.style['overflow'] = 'hidden';
-    frame.contentWindow.document.body.style['color'] = Base.COLOR_SET[this.theme()]['color']
-    frame.style['opacity'] = '1';
+    frame.style.height = `${frame.contentWindow.document.body.clientHeight + 50}px`;
+    frame.contentWindow.document.body.style.overflow = 'hidden';
+    frame.contentWindow.document.body.style.color = Base.COLOR_SET[this.theme()].color;
+    frame.style.opacity = '1';
     this._frames.push(frame);
   });
 }
@@ -153,7 +151,7 @@ function displayNextSpine() {
  */
 function loadFrame(frame, href) {
   return new Promise(resolve => {
-    frame.style['opacity'] = '0';
+    frame.style.opacity = '0';
     frame.setAttribute('src', `___/${this._book.hash}/${href}`);
 
     const self = this;

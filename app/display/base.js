@@ -1,5 +1,4 @@
 class Base {
-
   constructor(element, displayOptions) {
     this._element = element;
     this._displayRatio = 1;
@@ -54,28 +53,25 @@ class Base {
   }
 
   theme() {
-    var theme = this._displayOptions.theme;
+    let theme = this._displayOptions.theme;
     if (theme === Base.AUTO_THEME) {
       if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        theme = Base.NIGHT_THEME
-      }
-      else {
-        theme = Base.LIGHT_THEME
+        theme = Base.NIGHT_THEME;
+      } else {
+        theme = Base.LIGHT_THEME;
       }
     }
-    return theme
+    return theme;
   }
 
   toggleTheme() {
-    const theme = this.theme()
-    if (theme == Base.LIGHT_THEME) {
-      this.nightTheme()
-    }
-    else if (theme == Base.NIGHT_THEME) {
-      this.ligthTheme()
-    }
-    else {
-      this.autoTheme()
+    const theme = this.theme();
+    if (theme === Base.LIGHT_THEME) {
+      this.nightTheme();
+    } else if (theme === Base.NIGHT_THEME) {
+      this.ligthTheme();
+    } else {
+      this.autoTheme();
     }
   }
 }
@@ -92,12 +88,12 @@ Base.DEFAULT_THEME = Base.AUTO_THEME;
 Base.DEFAULT_COLUMN_COUNT = 2;
 
 Base.COLOR_SET = {
-  'light': {
-    'color': '#000000',
+  light: {
+    color: '#000000',
     'background-color': '#ffffff'
   },
-  'night': {
-    'color': '#eeeeee',
+  night: {
+    color: '#eeeeee',
     'background-color': '#1c1c1c'
   }
 };

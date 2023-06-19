@@ -4,7 +4,6 @@ import forge from '../lib/forge.sha1';
 const x2js = new X2JS();
 
 export default class Encryption {
-
   static create(xmlDoc, opf) {
     const encryption = new Encryption();
 
@@ -13,9 +12,9 @@ export default class Encryption {
      *   1. get identifier from metadata
      *   2. hash it with sha1
      */
-    const metaId = Array.isArray(opf.metadata.identifier) ?
-      opf.metadata.identifier[0].__text :
-      opf.metadata.identifier.__text;
+    const metaId = Array.isArray(opf.metadata.identifier)
+      ? opf.metadata.identifier[0].__text
+      : opf.metadata.identifier.__text;
 
     const md = forge.md.sha1.create();
     md.update(metaId);
@@ -31,7 +30,7 @@ export default class Encryption {
     encryptedData.EncryptedData.forEach(element => {
       const item = element.CipherData.CipherReference._URI;
       const algorithm = element.EncryptionMethod._Algorithm;
-      encryption.encryptedItems[item] = { algorithm: algorithm, key: { idpf: idpfKey, adobe: adobeKey } };
+      encryption.encryptedItems[item] = { algorithm, key: { idpf: idpfKey, adobe: adobeKey } };
     });
 
     return encryption;
@@ -40,7 +39,7 @@ export default class Encryption {
   static empty() {
     return {
       encryptedItems: []
-    }
+    };
   }
 }
 
@@ -58,4 +57,3 @@ function urnUuidToByteArray(id) {
   }
   return array;
 }
-

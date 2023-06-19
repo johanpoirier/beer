@@ -10,7 +10,6 @@ import Fixed from './display/fixed';
 import Base from './display/base';
 
 export default class Beer {
-
   /**
    * @param book A Book
    */
@@ -22,20 +21,20 @@ export default class Beer {
     return new Promise((resolve, reject) => {
       serviceWorkerInstall()
         .then(registration => {
-          //registration.onupdatefound = () => onServiceWorkerUpdate(registration); // should do something with that
+          // registration.onupdatefound = () => onServiceWorkerUpdate(registration); // should do something with that
 
           if (navigator.serviceWorker.controller !== null) {
             return resolve();
           }
 
-          navigator.serviceWorker.oncontrollerchange = function () {
-            this.controller.onstatechange = function () {
+          navigator.serviceWorker.oncontrollerchange = function() {
+            this.controller.onstatechange = function() {
               if (this.state === 'activated') {
                 window.location.reload(); // SW do not control the page immediately in FF :(
                 resolve();
               }
             };
-          }
+          };
         })
         .catch(reject);
     });
@@ -73,7 +72,7 @@ export default class Beer {
       throw new Error('container HTML element not found');
     }
     const defaultOptions = getDefaultDisplayOptions();
-    this._displayOptions = Object.assign(defaultOptions, displayOptions)
+    this._displayOptions = Object.assign(defaultOptions, displayOptions);
 
     if (this._book.isFixedLayout) {
       this._displayOptions.mode = 'fixed';
@@ -88,9 +87,9 @@ export default class Beer {
       readerDisplay = new Page(htmlElement, this._displayOptions);
     }
 
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => e.matches && readerDisplay._displayOptions.theme == Base.AUTO_THEME && readerDisplay.autoTheme());
-    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => e.matches && readerDisplay._displayOptions.theme == Base.AUTO_THEME && readerDisplay.autoTheme());
-    
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => e.matches && readerDisplay._displayOptions.theme === Base.AUTO_THEME && readerDisplay.autoTheme());
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => e.matches && readerDisplay._displayOptions.theme === Base.AUTO_THEME && readerDisplay.autoTheme());
+
     readerDisplay.display(this._book, this._displayOptions.cfi || null);
 
     return readerDisplay;
@@ -109,6 +108,7 @@ function loadBook(url) {
 function getFile(zip, path, format = 'string') {
   const zipFile = zip.file(path);
   if (!zipFile) {
+    // eslint-disable-next-line prefer-promise-reject-errors
     return Promise.reject(`file ${path} not found in zip`);
   }
   return zipFile.async(format);
@@ -130,7 +130,6 @@ function getOpf(zip) {
   const parser = new DOMParser();
   return getFile(zip, 'META-INF/container.xml')
     .then(containerXml => {
-
       const container = parser.parseFromString(containerXml.trim(), 'text/xml');
       const opfFilePath = getOpfFilePath(container);
 

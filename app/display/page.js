@@ -1,17 +1,16 @@
 import Base from './base';
 import EventedMixin from '../mixin/evented';
 import EpubCfi from '../lib/epubcfi';
-import {debounce} from '../tools';
+import { debounce } from '../tools';
 
 const epubCfi = new EpubCfi();
 
 export default class Page extends EventedMixin(Base) {
-
   constructor(element, displayOptions) {
     super(...arguments);
 
     this._frame = createFrame();
-    this._columnGap = this._displayOptions.columnCount == 2 ? 2*Base.DEFAULT_MARGIN:0;
+    this._columnGap = this._displayOptions.columnCount === 2 ? 2 * Base.DEFAULT_MARGIN : 0;
     this._element.classList.add('page');
     this._element.appendChild(this._frame);
 
@@ -51,14 +50,14 @@ export default class Page extends EventedMixin(Base) {
 
   twoColumns() {
     this._displayOptions.columnCount = 2;
-    this._columnGap = 2*this._displayOptions.margin;
+    this._columnGap = 2 * this._displayOptions.margin;
     fitContent.call(this, this._frame, this._displayOptions);
   }
 
   marginUp() {
-    if (this._displayOptions.margin < this._frame.clientWidth/6) {
+    if (this._displayOptions.margin < this._frame.clientWidth / 6) {
       this._displayOptions.margin += Base.MARGIN_STEP;
-      this._columnGap = this._displayOptions.columnCount == 2 ? 2*this._displayOptions.margin:0;
+      this._columnGap = this._displayOptions.columnCount === 2 ? 2 * this._displayOptions.margin : 0;
       fitContent.call(this, this._frame, this._displayOptions);
     }
   }
@@ -66,7 +65,7 @@ export default class Page extends EventedMixin(Base) {
   marginDown() {
     if (this._displayOptions.margin > Base.MARGIN_STEP) {
       this._displayOptions.margin -= Base.MARGIN_STEP;
-      this._columnGap = this._displayOptions.columnCount == 2 ? 2*this._displayOptions.margin:0;
+      this._columnGap = this._displayOptions.columnCount === 2 ? 2 * this._displayOptions.margin : 0;
       fitContent.call(this, this._frame, this._displayOptions);
     }
   }
@@ -138,7 +137,7 @@ function displaySpine(spineItemIndex, position = 0) {
 
     this._frame.contentWindow.scrollBy(Math.round(this._contentHtml.scrollWidth * position / 100), 0);
 
-    frame.style['opacity'] = '1';
+    frame.style.opacity = '1';
 
     computeCfi(this._currentSpineItemCfi, this._contentHtml);
   });
@@ -168,7 +167,7 @@ function displaySpineFromCfi(cfi) {
     const position = 100 * elementToDisplay.getClientRects()[0].left / this._contentHtml.scrollWidth;
 
     this._frame.contentWindow.scrollBy(Math.round(this._contentHtml.scrollWidth * position / 100), 0);
-    frame.style['opacity'] = '1';
+    frame.style.opacity = '1';
 
     computeCfi(this._currentSpineItemCfi, this._contentHtml);
   });
@@ -179,7 +178,7 @@ function displaySpineFromCfi(cfi) {
  */
 function loadFrame(href) {
   return new Promise(resolve => {
-    this._frame.style['opacity'] = '0';
+    this._frame.style.opacity = '0';
     this._frame.setAttribute('src', `___/${this._book.hash}/${href}`);
 
     const self = this;
@@ -202,11 +201,9 @@ function loadFrame(href) {
  * @param columnCount
  */
 function fitContent(frame, displayOptions) {
-
-  const theme = this.theme()
+  const theme = this.theme();
   // Parent element background color
   this._element.style['background-color'] = Base.COLOR_SET[theme]['background-color'];
-
 
   // Frame style
   frame.style['padding-left'] = `${(displayOptions.margin)}px`;
@@ -219,15 +216,14 @@ function fitContent(frame, displayOptions) {
   html.style['column-count'] = displayOptions.columnCount;
   html.style['column-gap'] = `${this._columnGap}px`;
   html.style['break-inside'] = 'avoid';
-  html.style['height'] = `${frame.clientHeight-(Base.DEFAULT_MARGIN*2)}px`; // The top/bottom margins are always set to default
-  html.style['overflow'] = 'hidden';
-  html.style['color'] = Base.COLOR_SET[theme]['color'];
+  html.style.height = `${frame.clientHeight - (Base.DEFAULT_MARGIN * 2)}px`; // The top/bottom margins are always set to default
+  html.style.overflow = 'hidden';
+  html.style.color = Base.COLOR_SET[theme].color;
 
   // position is not quite good yet
   const rawScrollLeft = html.scrollWidth * this._position / 100;
-  frame.contentWindow.scrollTo(rawScrollLeft - (rawScrollLeft % (html.clientWidth + (displayOptions.columnCount - 1) * (displayOptions.margin*2))), 0);
-  //frame.contentWindow.scrollTo(rawScrollLeft - (rawScrollLeft % (html.clientWidth + this._columnGap)), 0);
-
+  frame.contentWindow.scrollTo(rawScrollLeft - (rawScrollLeft % (html.clientWidth + (displayOptions.columnCount - 1) * (displayOptions.margin * 2))), 0);
+  // frame.contentWindow.scrollTo(rawScrollLeft - (rawScrollLeft % (html.clientWidth + this._columnGap)), 0);
 }
 
 /**
@@ -273,6 +269,7 @@ function computeCfi(cfiBase, content) {
   const firstVisibleElement = Array.from(content.querySelectorAll('body > *')).reduce((first, current) => {
     if (first) return first;
     if (current.getClientRects()[0].right > 0) return current;
+    return null;
   }, false);
 
   return epubCfi.generateCfiFromElement(firstVisibleElement, cfiBase);
