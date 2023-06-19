@@ -1,7 +1,7 @@
 "use strict";
 
 import SpineItem from './spine-item';
-import X2JS from '../xml2json';
+import X2JS from '../lib/xml2json';
 import EpubCfi from '../lib/epubcfi';
 
 const x2js = new X2JS();

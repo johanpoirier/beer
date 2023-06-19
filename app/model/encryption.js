@@ -1,4 +1,4 @@
-import X2JS from '../xml2json';
+import X2JS from '../lib/xml2json';
 import forge from '../lib/forge.sha1';
 
 const x2js = new X2JS();
