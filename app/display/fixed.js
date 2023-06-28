@@ -3,8 +3,7 @@ import EventedMixin from '../mixin/evented';
 import { debounce } from '../tools';
 
 export default class Fixed extends EventedMixin(Base) {
-
-  constructor(element) {
+  constructor(element, displayOptions) {
     super(...arguments);
 
     this._element.classList.add('fixed');
@@ -59,16 +58,16 @@ export default class Fixed extends EventedMixin(Base) {
     this._frames.forEach(frame => {
       const html = frame.contentWindow.document.querySelector('html');
 
-      frame.style['width'] = '0';
-      html.style['transform'] = '';
+      frame.style.width = '0';
+      html.style.transform = '';
 
-      frame.style['width'] = `${Math.round(this._displayRatio * frame.contentDocument.body.scrollWidth)}px`;
+      frame.style.width = `${Math.round(this._displayRatio * frame.contentDocument.body.scrollWidth)}px`;
 
       html.style['overflow-y'] = 'hidden';
       html.style['transform-origin'] = '0 0 0';
-      html.style['transform'] = `scale(${this._displayRatio})`;
+      html.style.transform = `scale(${this._displayRatio})`;
 
-      frame.style['opacity'] = '1';
+      frame.style.opacity = '1';
     });
   }
 
@@ -77,7 +76,6 @@ export default class Fixed extends EventedMixin(Base) {
   }
 }
 
-
 /**
  *
  * @param frame
@@ -85,7 +83,7 @@ export default class Fixed extends EventedMixin(Base) {
 function frameLoaded(frame) {
   this.trigger('load', frame.contentDocument);
   fitContent.call(this, frame);
-  frame.contentWindow.addEventListener('unload', () => frame.style['opacity'] = '0', false);
+  frame.contentWindow.addEventListener('unload', () => { frame.style.opacity = '0'; return true; }, false);
 }
 
 /**
@@ -121,7 +119,7 @@ function createFrame(index) {
  */
 function loadFrame(frame, hash, href) {
   return new Promise(resolve => {
-    frame.style['opacity'] = '0';
+    frame.style.opacity = '0';
     frame.setAttribute('src', `___/${hash}/${href}`);
     resolve(frame);
   });

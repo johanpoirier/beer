@@ -25,7 +25,7 @@ const mimeTypeMap = {
 };
 
 if (config.debug === false) {
-  console.debug = function () {
+  console.debug = function() {
   };
 }
 
@@ -34,7 +34,7 @@ if (config.debug === false) {
  *  - clean old cache entries
  *  - force clients claim
  */
-self.addEventListener('activate', function (event) {
+self.addEventListener('activate', function(event) {
   function onActivate(version) {
     return caches.keys()
       .then(cacheKeys => {
@@ -44,8 +44,8 @@ self.addEventListener('activate', function (event) {
       });
   }
 
-  console.debug(`[BEER-SW] Activate`);
-  event.waitUntil(onActivate(config.version).then(function () {
+  console.debug('[BEER-SW] Activate');
+  event.waitUntil(onActivate(config.version).then(function() {
     console.debug(`[BEER-SW] Claiming clients for version ${config.version}`);
     self.clients.matchAll({ includeUncontrolled: true }).then(clients => console.debug('[BEER-SW] Clients', clients.map(c => c.url)));
     return self.clients.claim();
@@ -57,7 +57,7 @@ self.addEventListener('activate', function (event) {
  *  - force immediate installation
  */
 self.addEventListener('install', event => {
-  console.debug(`[BEER-SW] Installation`);
+  console.debug('[BEER-SW] Installation');
   return event.waitUntil(self.skipWaiting());
 });
 
@@ -83,7 +83,6 @@ self.addEventListener('message', event => {
  *  - 404 response if no resource found
  */
 self.addEventListener('fetch', event => {
-
   function shouldHandleFetch(event, opts) {
     const request = event.request;
     const url = new URL(request.url);
@@ -92,7 +91,7 @@ self.addEventListener('fetch', event => {
       isGETRequest: request.method === 'GET',
       isFromMyOrigin: url.origin === self.location.origin
     };
-    const failingCriteria = Object.keys(criteria).filter(function (criteriaKey) {
+    const failingCriteria = Object.keys(criteria).filter(function(criteriaKey) {
       return !criteria[criteriaKey];
     });
     return !failingCriteria.length;
@@ -137,6 +136,7 @@ function getEpubZip(epubHash) {
   if (self.epubs[epubHash].zip) {
     return Promise.resolve(self.epubs[epubHash].zip);
   }
+  // eslint-disable-next-line no-undef
   return JSZip.loadAsync(self.epubs[epubHash].blob).then(zip => {
     delete self.epubs[epubHash].blob;
     self.epubs[epubHash].zip = zip;
@@ -150,10 +150,12 @@ function getFileInEpub(epubHash, filePath) {
     .then(zip => {
       const zipFile = zip.file(filePath);
       if (!zipFile) {
+        // eslint-disable-next-line no-undef
         throw new Exception(`${filePath} not found in zip file`);
       }
       return zipFile.async('arraybuffer');
     })
+    // eslint-disable-next-line no-undef
     .then(data => FileDecryptor.decrypt(self.epubs[epubHash], filePath, data))
     .then(data => getZipResponse(getMimeTypeFromFileExtension(filePath), data));
 }
@@ -186,6 +188,7 @@ function fetchFromCache(request) {
       console.debug(`[BEER-SW] fetching ${request.url} from cache`);
       return response;
     }
+    // eslint-disable-next-line prefer-promise-reject-errors
     return Promise.reject();
   });
 }

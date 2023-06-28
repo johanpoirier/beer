@@ -1,25 +1,21 @@
 import Base from './base';
 import EventedMixin from '../mixin/evented';
 import EpubCfi from '../lib/epubcfi';
-import {debounce} from '../tools';
+import { debounce } from '../tools';
 
-const COLUMN_DEFAULT_COUNT = 2;
 const epubCfi = new EpubCfi();
 
 export default class Page extends EventedMixin(Base) {
-
-  constructor(element) {
+  constructor(element, displayOptions) {
     super(...arguments);
 
     this._frame = createFrame();
-    this._columnCount = COLUMN_DEFAULT_COUNT;
-    this._margin = Base.DEFAULT_MARGIN;
-    this._columnGap = this._columnCount == 2 ? 2*Base.DEFAULT_MARGIN:0;
+    this._columnGap = this._displayOptions.columnCount === 2 ? 2 * Base.DEFAULT_MARGIN : 0;
     this._element.classList.add('page');
     this._element.appendChild(this._frame);
 
     window.addEventListener('resize', debounce(() => {
-      fitContent.call(this, this._frame, this._columnCount);
+      fitContent.call(this, this._frame, this._displayOptions);
     }, 100), false);
   }
 
@@ -34,44 +30,59 @@ export default class Page extends EventedMixin(Base) {
 
   zoomIn() {
     // Stop zoom if ratio is grater than 2
-    if (this._displayRatio > 2) return;
-    this._displayRatio *= Base.FONT_SCALE_MULTIPLIER;
-    zoom.call(this, this._displayRatio);
+    if (this._displayOptions.ratio > 2) return;
+    this._displayOptions.ratio *= Base.FONT_SCALE_MULTIPLIER;
+    zoom.call(this, this._displayOptions.ratio);
   }
 
   zoomOut() {
     // Stop zoom if ratio is small than 2
-    if (this._displayRatio < 0.5) return;
-    this._displayRatio /= Base.FONT_SCALE_MULTIPLIER;
-    zoom.call(this, this._displayRatio);
+    if (this._displayOptions.ratio < 0.5) return;
+    this._displayOptions.ratio /= Base.FONT_SCALE_MULTIPLIER;
+    zoom.call(this, this._displayOptions.ratio);
   }
 
   oneColumn() {
-    this._columnCount = 1;
+    this._displayOptions.columnCount = 1;
     this._columnGap = 0;
-    fitContent.call(this, this._frame, this._columnCount);
+    fitContent.call(this, this._frame, this._displayOptions);
   }
 
   twoColumns() {
-    this._columnCount = 2;
-    this._columnGap = 2*this._margin;
-    fitContent.call(this, this._frame, this._columnCount);
+    this._displayOptions.columnCount = 2;
+    this._columnGap = 2 * this._displayOptions.margin;
+    fitContent.call(this, this._frame, this._displayOptions);
   }
 
   marginUp() {
-    if (this._margin < this._frame.clientWidth/8) {
-      this._margin += Base.MARGIN_STEP;
-      this._columnGap = this._columnCount == 2 ? 2*this._margin:0;
-      fitContent.call(this, this._frame, this._columnCount);
+    if (this._displayOptions.margin < this._frame.clientWidth / 6) {
+      this._displayOptions.margin += Base.MARGIN_STEP;
+      this._columnGap = this._displayOptions.columnCount === 2 ? 2 * this._displayOptions.margin : 0;
+      fitContent.call(this, this._frame, this._displayOptions);
     }
   }
 
   marginDown() {
-    if (this._margin > Base.MARGIN_STEP) {
-      this._margin -= Base.MARGIN_STEP;
-      this._columnGap = this._columnCount == 2 ? 2*this._margin:0;
-      fitContent.call(this, this._frame, this._columnCount);
+    if (this._displayOptions.margin > Base.MARGIN_STEP) {
+      this._displayOptions.margin -= Base.MARGIN_STEP;
+      this._columnGap = this._displayOptions.columnCount === 2 ? 2 * this._displayOptions.margin : 0;
+      fitContent.call(this, this._frame, this._displayOptions);
     }
+  }
+
+  ligthTheme() {
+    this._displayOptions.theme = Base.LIGHT_THEME;
+    fitContent.call(this, this._frame, this._displayOptions);
+  }
+
+  nightTheme() {
+    this._displayOptions.theme = Base.NIGHT_THEME;
+    fitContent.call(this, this._frame, this._displayOptions);
+  }
+
+  autoTheme() {
+    this._displayOptions.theme = Base.AUTO_THEME;
+    fitContent.call(this, this._frame, this._displayOptions);
   }
 
   previous() {
@@ -122,11 +133,11 @@ function displaySpine(spineItemIndex, position = 0) {
 
   return loadFrame.call(this, spineItem.href).then(frame => {
     this._contentHtml = frame.contentDocument.querySelector('html');
-    zoom.call(this, this._displayRatio);
+    zoom.call(this, this._displayOptions.ratio);
 
     this._frame.contentWindow.scrollBy(Math.round(this._contentHtml.scrollWidth * position / 100), 0);
 
-    frame.style['opacity'] = '1';
+    frame.style.opacity = '1';
 
     computeCfi(this._currentSpineItemCfi, this._contentHtml);
   });
@@ -156,7 +167,7 @@ function displaySpineFromCfi(cfi) {
     const position = 100 * elementToDisplay.getClientRects()[0].left / this._contentHtml.scrollWidth;
 
     this._frame.contentWindow.scrollBy(Math.round(this._contentHtml.scrollWidth * position / 100), 0);
-    frame.style['opacity'] = '1';
+    frame.style.opacity = '1';
 
     computeCfi(this._currentSpineItemCfi, this._contentHtml);
   });
@@ -167,7 +178,7 @@ function displaySpineFromCfi(cfi) {
  */
 function loadFrame(href) {
   return new Promise(resolve => {
-    this._frame.style['opacity'] = '0';
+    this._frame.style.opacity = '0';
     this._frame.setAttribute('src', `___/${this._book.hash}/${href}`);
 
     const self = this;
@@ -176,7 +187,7 @@ function loadFrame(href) {
       self.trigger('load', self._frame.contentDocument);
       self._frame.removeEventListener('load', frameOnLoad, true);
 
-      fitContent.call(self, self._frame, self._columnCount);
+      fitContent.call(self, self._frame, self._displayOptions);
 
       resolve(self._frame);
     }
@@ -189,24 +200,30 @@ function loadFrame(href) {
  * @param frame
  * @param columnCount
  */
-function fitContent(frame, columnCount) {
+function fitContent(frame, displayOptions) {
+  const theme = this.theme();
+  // Parent element background color
+  this._element.style['background-color'] = Base.COLOR_SET[theme]['background-color'];
+
   // Frame style
-  frame.style['padding-left'] = `${(this._margin)}px`;
-  frame.style['padding-right'] = `${(this._margin)}px`;
+  frame.style['padding-left'] = `${(displayOptions.margin)}px`;
+  frame.style['padding-right'] = `${(displayOptions.margin)}px`;
   frame.style['padding-top'] = `${Base.DEFAULT_MARGIN}px`;
   frame.style['padding-bottom'] = `${Base.DEFAULT_MARGIN}px`;
 
   // Content inner style
   const html = frame.contentDocument.querySelector('html');
-  html.style['column-count'] = columnCount;
+  html.style['column-count'] = displayOptions.columnCount;
   html.style['column-gap'] = `${this._columnGap}px`;
   html.style['break-inside'] = 'avoid';
-  html.style['height'] = `${frame.clientHeight-(Base.DEFAULT_MARGIN*2)}px`; // The top/bottom margins are always set to default
-  html.style['overflow'] = 'hidden';
+  html.style.height = `${frame.clientHeight - (Base.DEFAULT_MARGIN * 2)}px`; // The top/bottom margins are always set to default
+  html.style.overflow = 'hidden';
+  html.style.color = Base.COLOR_SET[theme].color;
 
   // position is not quite good yet
   const rawScrollLeft = html.scrollWidth * this._position / 100;
-  frame.contentWindow.scrollTo(rawScrollLeft - (rawScrollLeft % (html.clientWidth + (columnCount - 1) * (this._margin*2))), 0);
+  frame.contentWindow.scrollTo(rawScrollLeft - (rawScrollLeft % (html.clientWidth + (displayOptions.columnCount - 1) * (displayOptions.margin * 2))), 0);
+  // frame.contentWindow.scrollTo(rawScrollLeft - (rawScrollLeft % (html.clientWidth + this._columnGap)), 0);
 }
 
 /**
@@ -252,6 +269,7 @@ function computeCfi(cfiBase, content) {
   const firstVisibleElement = Array.from(content.querySelectorAll('body > *')).reduce((first, current) => {
     if (first) return first;
     if (current.getClientRects()[0].right > 0) return current;
+    return null;
   }, false);
 
   return epubCfi.generateCfiFromElement(firstVisibleElement, cfiBase);
@@ -263,6 +281,6 @@ function computeCfi(cfiBase, content) {
  *
  * @param multiplier
  */
-function zoom(multiplier) {
-  this._frame.contentWindow.document.body.style['font-size'] = `${100 * multiplier}%`;
+function zoom() {
+  this._frame.contentWindow.document.body.style['font-size'] = `${100 * this._displayOptions.ratio}%`;
 }

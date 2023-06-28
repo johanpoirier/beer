@@ -1,5 +1,4 @@
 export default class SpineItem {
-
   constructor(id, href, mediaType) {
     this.id = id;
     this.href = href;
@@ -7,6 +6,6 @@ export default class SpineItem {
   }
 
   static fromXml(xml) {
-    return new SpineItem(xml['_id'], xml['_href'], xml['_media-type']);
+    return new SpineItem(xml._id, xml._href, xml['_media-type']);
   }
 }

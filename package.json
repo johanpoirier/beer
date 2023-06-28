@@ -20,7 +20,8 @@
     "predev": "npm run clean",
     "dev": "npm run build && parallelshell 'webpack --watch' 'npm run watch:html' 'npm run watch:sw'",
     "prepackage": "npm run clean",
-    "package": "npm run js -- -p && npm run sw:package"
+    "package": "npm run js -- -p && npm run sw:package",
+    "lint": "eslint --ignore-pattern app/lib/ --env browser --fix --ext .js,.jsx app"
   },
   "repository": "git+https://github.com/johanpoirier/beer.git",
   "keywords": [],
@@ -33,9 +34,16 @@
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.40",
     "@babel/preset-env": "^7.0.0-beta.40",
+    "@typescript-eslint/eslint-plugin": "^5.60.0",
     "babel-loader": "^8.0.0-beta.2",
+    "eslint": "^8.43.0",
+    "eslint-config-standard-with-typescript": "^35.0.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^15.7.0",
+    "eslint-plugin-promise": "^6.1.1",
     "onchange": "^3.3.0",
     "parallelshell": "^3.0.2",
+    "typescript": "^5.1.3",
     "uglify-es": "^3.3.10",
     "webpack": "^3.11.0"
   },

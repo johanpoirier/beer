@@ -1,5 +1,4 @@
 const EventedMixin = (superclass) => class extends superclass {
-
   constructor() {
     super(...arguments);
     this._events = {};
