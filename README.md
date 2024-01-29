@@ -16,6 +16,7 @@ You need to have
 You can start beer with the webpack dev server :
 
 ```
+#beer> npm install
 #beer> npm run dev 
 ...
 ```
