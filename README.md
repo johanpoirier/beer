@@ -10,47 +10,17 @@ BEER is an ePub reader prototype, based on recent javascript technologies:
 
 You need to have
 * A working node/npm env
-* A local HTTPS webserver (if you don't have one, you can use the docker)
-
-## Docker
-
-### Build docker image
-
-```
-#> cd docker
-#docker> ./build.sh
-...
-```
-
-This command build the docker image, and print the public certificate to add in the trust store.
-The public certificate must be like this :
-
-```
------BEGIN CERTIFICATE-----
-MIIELzCCAxegAw....
-....
------END CERTIFICATE-----
-```
-
-According to your system (Linux, Windows, Mac), you have to add this certificate into the trust store in order to be able to run Beer in HTTPS. This is mandatory to make service worker working.
-
-### Run the docker image
-
-```
-#> cd docker
-#docker> ./run.sh
-Running docker container
-....
-```
-
-This docker container expose `80` and `443` ports to your local machine.
 
 ## Start Beer
 
-To make HTTPS and nginx happy, you have to configure you local hosts file (mainly `/etc/hosts`) to add beer.local domain name:
+You can start beer with the webpack dev server :
 
 ```
-127.0.0.1 beer.local
+#beer> npm run dev 
+...
 ```
 
-Now you can use your favorite browser (which supports service workers) on the beer.local URL.
+This command build distrib and start it into the HTTPs webpack server.
+
+To allow the service worker to be loaded, you need to add the webpack localhost certificate (automatically generated) into your system (or browser) trust store.
+You can download the certificate from you browser (on the left side of the URL bar, most of the time).
