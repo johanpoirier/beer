@@ -1,4 +1,11 @@
 const path = require('path');
+const WebpackConcatPlugin = require('webpack-concat-files-plugin');
+
+const destDir = path.resolve(__dirname, 'dist');
+const swDest = path.join(destDir, 'beer-service-worker.js');
+const zipLib = path.join(path.resolve(__dirname, 'node_modules'), '@zip.js', 'zip.js', 'dist', 'zip-fs.min.js')
+const epubSw = path.join(path.resolve(__dirname, 'app'), 'sw', 'beer-service-worker.js');
+const cryptSw = path.join(path.resolve(__dirname, 'app'), 'sw', 'file-decryptor.js');
 
 module.exports = {
   mode: 'production',
@@ -8,9 +15,16 @@ module.exports = {
   },
   output: {
     filename: '[name].js',
-    path: path.resolve(__dirname, 'dist')
+    path: destDir
   },
-
+  plugins: [
+    new WebpackConcatPlugin({
+      bundles: [{
+        src: [ zipLib, cryptSw, epubSw],
+        dest: swDest
+      }]
+    })
+  ],
   module: {
     rules: [
       {
@@ -32,7 +46,7 @@ module.exports = {
   },
   devServer: {
     static: {
-      directory: path.join(__dirname, 'dist'),
+      directory: destDir,
     },
     compress: true,
     https: true,

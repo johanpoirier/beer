@@ -29,6 +29,10 @@ if (config.debug === false) {
   };
 }
 
+zip.configure({
+  useWebWorkers: false
+})
+
 /**
  * On SW activation:
  *  - clean old cache entries
@@ -71,7 +75,8 @@ self.addEventListener('message', event => {
 
   self.epubs[event.data.hash] = {
     blob: event.data.blob,
-    encryptedItems: event.data.encryptedItems
+    url: event.data.url,
+    encryptedItems: []
   };
 });
 
@@ -132,32 +137,31 @@ function getZipResponse(mimeType, arrayBuffer) {
   return new Response(new Blob([arrayBuffer], { type: mimeType }), init);
 }
 
-function getEpubZip(epubHash) {
-  if (self.epubs[epubHash].zip) {
-    return Promise.resolve(self.epubs[epubHash].zip);
+function getZipFs(epubHash) {
+  const zipfs = self.epubs[epubHash].zip || new zip.fs.FS();
+  self.epubs[epubHash].zip = zipfs;
+  if (self.epubs[epubHash].blob) {
+    return zipfs.importBlob(self.epubs[epubHash].blob);
   }
-  // eslint-disable-next-line no-undef
-  return JSZip.loadAsync(self.epubs[epubHash].blob).then(zip => {
-    delete self.epubs[epubHash].blob;
-    self.epubs[epubHash].zip = zip;
-    return zip;
-  });
+  else {
+    return zipfs.importHttpContent(self.epubs[epubHash].url, {
+      preventHeadRequest: false,
+      useRangeHeader: true,
+    });
+  }
 }
 
 function getFileInEpub(epubHash, filePath) {
   console.debug(`[BEER-SW] fetching ${filePath} from the epub file`);
-  return getEpubZip(epubHash)
-    .then(zip => {
-      const zipFile = zip.file(filePath);
-      if (!zipFile) {
-        // eslint-disable-next-line no-undef
-        throw new Exception(`${filePath} not found in zip file`);
-      }
-      return zipFile.async('arraybuffer');
-    })
-    // eslint-disable-next-line no-undef
-    .then(data => FileDecryptor.decrypt(self.epubs[epubHash], filePath, data))
-    .then(data => getZipResponse(getMimeTypeFromFileExtension(filePath), data));
+  return getZipFs(epubHash).then(() => {
+    const entry = self.epubs[epubHash].zip.find(filePath)
+    if (!entry) {
+      return Promise.reject(`${filePath} not found in zip file`);
+    }
+    return entry.getUint8Array();
+  })
+  .then(data => FileDecryptor.decrypt(self.epubs[epubHash], filePath, data))
+  .then(data => getZipResponse(getMimeTypeFromFileExtension(filePath), data))
 }
 
 function getMimeTypeFromFileExtension(filePath) {

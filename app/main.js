@@ -11,7 +11,7 @@ const container = document.querySelector('main');
 
 // 9783423441117.epub
 Beer.init()
-  .then(() => Beer.withBook('/epubs/moby-dick.epub'), console.error)
+  .then(() => Beer.withBookUrl('https://localhost:8080/epubs/moby-dick.epub'), console.error)
   .then(reader => {
     const displayOptions = {
       mode: 'page',

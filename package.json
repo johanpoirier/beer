@@ -11,13 +11,11 @@
     "copy:misc": "cp app/favicon.ico dist/",
     "copy:epubs": "mkdir -p dist/epubs && cp epubs/* dist/epubs/",
     "js": "webpack",
-    "sw": "cat node_modules/jszip/dist/jszip.js > dist/beer-service-worker.js && cat app/sw/file-decryptor.js >> dist/beer-service-worker.js && cat app/sw/beer-service-worker.js >> dist/beer-service-worker.js",
-    "sw:package": "cat node_modules/jszip/dist/jszip.min.js > dist/beer-service-worker.js && uglifyjs --compress --mangle -- app/sw/file-decryptor.js >> dist/beer-service-worker.js && uglifyjs --compress --mangle -- app/sw/beer-service-worker.js >> dist/beer-service-worker.js",
-    "build": "npm run copy && npm run js && npm run sw",
+    "build": "npm run copy && npm run js",
     "predev": "npm run clean",
     "dev": "npm run build && npx webpack serve --mode=production",
     "prepackage": "npm run clean",
-    "package": "npm run js -- -p && npm run sw:package",
+    "package": "npm run js -- -p",
     "lint": "eslint --ignore-pattern app/lib/ --env browser --fix --ext .js,.jsx app"
   },
   "repository": "git+https://github.com/johanpoirier/beer.git",
@@ -28,7 +26,7 @@
     "url": "https://github.com/johanpoirier/beer/issues"
   },
   "homepage": "https://github.com/johanpoirier/beer#readme",
-    "devDependencies": {
+  "devDependencies": {
     "@babel/core": "^7.23.9",
     "@babel/preset-env": "^7.23.9",
     "@typescript-eslint/eslint-plugin": "^6.19.1",
@@ -42,9 +40,11 @@
     "uglify-js": "^3.13.0",
     "webpack": "^5.90.0",
     "webpack-cli": "^5.1.4",
+    "webpack-concat-files-plugin": "^0.5.2",
     "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
+    "@zip.js/zip.js": "^2.7.34",
     "jszip": "^3.10.1"
   },
   "private": true
