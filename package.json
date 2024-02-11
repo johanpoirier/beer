@@ -11,16 +11,11 @@
     "copy:misc": "cp app/favicon.ico dist/",
     "copy:epubs": "mkdir -p dist/epubs && cp epubs/* dist/epubs/",
     "js": "webpack",
-    "sw": "cat node_modules/jszip/dist/jszip.js > dist/beer-service-worker.js && cat app/sw/file-decryptor.js >> dist/beer-service-worker.js && cat app/sw/beer-service-worker.js >> dist/beer-service-worker.js",
-    "sw:package": "cat node_modules/jszip/dist/jszip.min.js > dist/beer-service-worker.js && uglifyjs --compress --mangle -- app/sw/file-decryptor.js >> dist/beer-service-worker.js && uglifyjs --compress --mangle -- app/sw/beer-service-worker.js >> dist/beer-service-worker.js",
-    "build": "npm run copy && npm run js && npm run sw",
-    "watch": "watch -d -u 'npm run build' app/*",
-    "watch:html": "onchange 'app/*.html' -- npm run copy:html",
-    "watch:sw": "onchange 'app/sw/*.js' -- npm run sw",
+    "build": "npm run copy && npm run js",
     "predev": "npm run clean",
-    "dev": "npm run build && parallelshell 'webpack --watch' 'npm run watch:html' 'npm run watch:sw'",
+    "dev": "npm run build && npx webpack serve --mode=production",
     "prepackage": "npm run clean",
-    "package": "npm run js -- -p && npm run sw:package",
+    "package": "npm run js -- -p",
     "lint": "eslint --ignore-pattern app/lib/ --env browser --fix --ext .js,.jsx app"
   },
   "repository": "git+https://github.com/johanpoirier/beer.git",
@@ -32,23 +27,24 @@
   },
   "homepage": "https://github.com/johanpoirier/beer#readme",
   "devDependencies": {
-    "@babel/core": "^7.0.0-beta.40",
-    "@babel/preset-env": "^7.0.0-beta.40",
-    "@typescript-eslint/eslint-plugin": "^5.60.0",
-    "babel-loader": "^8.0.0-beta.2",
+    "@babel/core": "^7.23.9",
+    "@babel/preset-env": "^7.23.9",
+    "@typescript-eslint/eslint-plugin": "^6.19.1",
+    "babel-loader": "^9.1.3",
     "eslint": "^8.43.0",
-    "eslint-config-standard-with-typescript": "^35.0.0",
+    "eslint-config-standard-with-typescript": "^43.0.1",
     "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-n": "^15.7.0",
+    "eslint-plugin-n": "^16.6.2",
     "eslint-plugin-promise": "^6.1.1",
-    "onchange": "^3.3.0",
-    "parallelshell": "^3.0.2",
-    "typescript": "^5.1.3",
-    "uglify-es": "^3.3.10",
-    "webpack": "^3.11.0"
+    "typescript": "^5.3.3",
+    "uglify-js": "^3.13.0",
+    "webpack": "^5.90.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-concat-files-plugin": "^0.5.2",
+    "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
-    "jszip": "^3.1.5"
+    "@zip.js/zip.js": "^2.7.34"
   },
   "private": true
 }

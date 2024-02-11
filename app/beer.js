@@ -1,6 +1,5 @@
 import serviceWorkerInstall from './sw/install';
 import forge from './lib/forge.sha1';
-import JSZip from '../node_modules/jszip/dist/jszip.js';
 import Opf from './model/opf';
 import Book from './model/book';
 import Encryption from './model/encryption';
@@ -46,13 +45,12 @@ export default class Beer {
    * @param url The URL of the epub
    * @returns Promise that resolves with the BEER reader
    */
-  static withBook(url) {
-    return loadBook(url)
-      .then(sendEpubToSw)
-      .then(book => new Beer(book))
-      .catch(console.error);
+  static withBookUrl(url) {
+    return sendBookUrlToSw(url).then(h => loadBook(h))
+    .then(book => new Beer(book))
+    .catch(console.error);
   }
-
+  
   get book() {
     return this._book;
   }
@@ -96,22 +94,21 @@ export default class Beer {
   }
 }
 
-function loadBook(url) {
-  return fetch(url)
-    .then(response => response.blob())
-    .then(blob => Promise.all([blob, JSZip.loadAsync(blob)]))
-    .then(([blob, zip]) => Promise.all([blob, zip, getOpf(zip)]))
-    .then(([blob, zip, opf]) => Promise.all([blob, opf, getEncryptionData(zip, opf)]))
-    .then(([blob, opf, encryptionData]) => new Book(hashCode(url), blob, opf.metadata, opf.spineItems, encryptionData));
+function loadBook(hash) {
+  return getOpf(hash)
+    .then(opf => Promise.all([opf, getEncryptionData(hash, opf)]))
+    .then(([opf, encryptionData]) => new Book(hash, opf.metadata, opf.spineItems, encryptionData));
 }
 
-function getFile(zip, path, format = 'string') {
-  const zipFile = zip.file(path);
-  if (!zipFile) {
-    // eslint-disable-next-line prefer-promise-reject-errors
-    return Promise.reject(`file ${path} not found in zip`);
-  }
-  return zipFile.async(format);
+function getFile(hash, path, format = 'string') {
+  return fetch(`/___/${hash}/${path}`).then((response) => {
+    if (format === 'string') {
+      return response.text()
+    }
+    else {
+      return response.arrayBuffer()
+    }
+  });
 }
 
 function getBasePath(contentFilePath) {
@@ -126,36 +123,35 @@ function getOpfFilePath(container) {
   return container.querySelector('rootfile').getAttribute('full-path');
 }
 
-function getOpf(zip) {
+function getOpf(hash) {
   const parser = new DOMParser();
-  return getFile(zip, 'META-INF/container.xml')
+  return getFile(hash, 'META-INF/container.xml')
     .then(containerXml => {
       const container = parser.parseFromString(containerXml.trim(), 'text/xml');
       const opfFilePath = getOpfFilePath(container);
 
-      return Promise.all([getBasePath(opfFilePath), getFile(zip, opfFilePath)]);
+      return Promise.all([getBasePath(opfFilePath), getFile(hash, opfFilePath)]);
     })
     .then(([basePath, opfXml]) => Opf.create(basePath, parser.parseFromString(opfXml.trim(), 'text/xml')));
 }
 
-function getEncryptionData(zip, opf) {
+function getEncryptionData(hash, opf) {
   const parser = new DOMParser();
-  return getFile(zip, 'META-INF/encryption.xml')
+  return getFile(hash, 'META-INF/encryption.xml')
     .then(encryptionXml => {
       const xmlDoc = parser.parseFromString(encryptionXml.trim(), 'text/xml');
       return Encryption.create(xmlDoc, opf);
     }, () => Encryption.empty());
 }
 
-function sendEpubToSw(book) {
+function sendBookUrlToSw(url) {
   return new Promise(resolve => {
+    const h = hashCode(url);
     navigator.serviceWorker.controller.postMessage({
-      hash: book.hash,
-      blob: book.data,
-      encryptedItems: book.encryptionData.encryptedItems
+      hash: hashCode(url),
+      url: url,
     });
-
-    resolve(book);
+    resolve(h);
   });
 }
 
