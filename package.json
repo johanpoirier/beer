@@ -44,8 +44,7 @@
     "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
-    "@zip.js/zip.js": "^2.7.34",
-    "jszip": "^3.10.1"
+    "@zip.js/zip.js": "^2.7.34"
   },
   "private": true
 }
