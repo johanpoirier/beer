@@ -138,16 +138,20 @@ function getZipResponse(mimeType, arrayBuffer) {
 }
 
 function getZipFs(epubHash) {
-  const zipfs = self.epubs[epubHash].zip || new zip.fs.FS();
-  self.epubs[epubHash].zip = zipfs;
-  if (self.epubs[epubHash].blob) {
-    return zipfs.importBlob(self.epubs[epubHash].blob);
+  if (self.epubs[epubHash].zip) {
+    return Promise.resolve(self.epubs[epubHash].zip)
   }
   else {
-    return zipfs.importHttpContent(self.epubs[epubHash].url, {
-      preventHeadRequest: false,
-      useRangeHeader: true,
-    });
+    self.epubs[epubHash].zip = new zip.fs.FS();
+    if (self.epubs[epubHash].blob) {
+      return self.epubs[epubHash].zip.importBlob(self.epubs[epubHash].blob);
+    }
+    else {
+      return self.epubs[epubHash].zip.importHttpContent(self.epubs[epubHash].url, {
+        preventHeadRequest: false,
+        useRangeHeader: true,
+      });
+    }
   }
 }
 
@@ -159,6 +163,8 @@ function getFileInEpub(epubHash, filePath) {
       return Promise.reject(`${filePath} not found in zip file`);
     }
     return entry.getUint8Array();
+  }, () => {
+    return Promise.reject("Cannot get zipfs for file");
   })
   .then(data => FileDecryptor.decrypt(self.epubs[epubHash], filePath, data))
   .then(data => getZipResponse(getMimeTypeFromFileExtension(filePath), data))
